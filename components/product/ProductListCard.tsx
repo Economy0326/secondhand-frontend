@@ -1,27 +1,31 @@
 import Link from "next/link";
 import StatusBadge from "@/components/common/StatusBadge";
+import { formatPrice } from "@/lib/format";
 
 type Props = {
   id: number;
   title: string;
   description: string;
+  imageUrl?: string;
   isAuction: boolean;
-  price?: string;
-  currentBidPrice?: string;
-  buyNowPrice?: string;
-  likes: number;
-  status?: "READY" | "RUNNING" | "FINISHED";
+  price?: number;
+  currentBidPrice?: number;
+  buyNowPrice?: number;
+  likes?: number;
+  status?: "READY" | "RUNNING" | "FINISHED" | "FAILED" | "CANCELLED";
 };
+// 추가로 렌더링 할 때는 formatPrice 함수를 이용
 
 export default function ProductListCard({
   id,
   title,
   description,
+  imageUrl,
   isAuction,
   price,
   currentBidPrice,
   buyNowPrice,
-  likes,
+  likes=0,
   status,
 }: Props) {
   return (
@@ -30,8 +34,16 @@ export default function ProductListCard({
       className="luxury-panel block overflow-hidden p-4 transition hover:-translate-y-1 hover:border-[var(--accent)]/30"
     >
       
-      {/* 이미지 영역의 크기와 비율을 먼저 div로 잡아둔 것 */}
-      <div className="aspect-[4/3] rounded-[20px] bg-[linear-gradient(135deg,#2b3348,#171b26)]" />
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={title}
+          // aspect-[4/3]: 가로 세로 비율을 4:3으로 유지
+          className="aspect-[4/3] w-full rounded-[20px] object-cover"
+        />
+      ) : (
+        <div className="aspect-[4/3] rounded-[20px] bg-[linear-gradient(135deg,#2b3348,#171b26)]" />
+      )}
 
       <div className="mt-5">
         <div className="mb-3 flex items-center justify-between">
@@ -62,7 +74,8 @@ export default function ProductListCard({
               <div>
                 <p className="text-xs text-white/45">현재 입찰가</p>
                 <p className="text-xl font-semibold text-white">
-                  {currentBidPrice}
+                  {/* undefined를 따로 처리해주는 이유는 formatPrice 함수가 undefined를 처리하지 않기 때문에 */}
+                  {currentBidPrice !== undefined ? formatPrice(currentBidPrice) : "-"}
                 </p>
               </div>
 
@@ -70,7 +83,7 @@ export default function ProductListCard({
                 <div>
                   <p className="text-xs text-white/45">즉시 구매가</p>
                   <p className="text-base font-medium text-[var(--accent)]">
-                    {buyNowPrice}
+                    {formatPrice(buyNowPrice)}
                   </p>
                 </div>
               )}
@@ -78,7 +91,9 @@ export default function ProductListCard({
           ) : (
             <div>
               <p className="text-xs text-white/45">판매가</p>
-              <p className="text-xl font-semibold text-white">{price}</p>
+              <p className="text-xl font-semibold text-white">
+                {price !== undefined ? formatPrice(price) : "-"}
+              </p>
             </div>
           )}
         </div>
