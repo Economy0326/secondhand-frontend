@@ -3,9 +3,9 @@ import StatusBadge from "../common/StatusBadge";
 type Props = {
   id: number;
   title: string;
-  status: "READY" | "RUNNING" | "FINISHED";
-  currentPrice: string;
-  buyNowPrice?: string;
+  status: "READY" | "RUNNING" | "FINISHED" | "FAILED" | "CANCELLED";
+  currentPrice: number;
+  buyNowPrice?: number;
   likes: number;
 };
 
