@@ -22,6 +22,7 @@ export default function RootLayout({
         {/* 공통 헤더 */}
         <Header />
 
+        {/* 레이아웃 페이지는 import 안해도 자동 연결*/}
         {/* 각 페이지 본문 */}
         <main>{children}</main>
       </body>

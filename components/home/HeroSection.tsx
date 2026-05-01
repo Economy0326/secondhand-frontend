@@ -34,6 +34,7 @@ export default function HeroSection() {
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/auctions"
+                // opacity-90: hover 시 90프로 투명하게
                 className="rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-black transition hover:opacity-90"
               >
                 진행 중인 경매 보기
@@ -50,6 +51,7 @@ export default function HeroSection() {
 
           {/* 오른쪽 대표 경매 카드 */}
           <div className="flex items-center">
+            {/* bg-gradient-to-br: 대각선(bottom-right) 그라데이션 */}
             <div className="w-full rounded-[28px] border border-white/10 bg-gradient-to-br from-[#242b3d] to-[#121621] p-6 shadow-2xl">
               <div className="mb-5 flex items-center justify-between">
                 <StatusBadge status="RUNNING" />

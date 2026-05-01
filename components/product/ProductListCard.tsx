@@ -8,9 +8,9 @@ type Props = {
   description: string;
   imageUrl?: string;
   isAuction: boolean;
-  price?: number;
-  currentBidPrice?: number;
-  buyNowPrice?: number;
+  currentPrice?: number;
+  buyNowPrice?: number | null;
+  startPrice?: number | null;
   likes?: number;
   status?: "READY" | "RUNNING" | "FINISHED" | "FAILED" | "CANCELLED";
 };
@@ -22,10 +22,10 @@ export default function ProductListCard({
   description,
   imageUrl,
   isAuction,
-  price,
-  currentBidPrice,
+  currentPrice,
   buyNowPrice,
-  likes=0,
+  startPrice,
+  likes = 0,
   status,
 }: Props) {
   return (
@@ -33,7 +33,6 @@ export default function ProductListCard({
       href={`/products/${id}`}
       className="luxury-panel block overflow-hidden p-4 transition hover:-translate-y-1 hover:border-[var(--accent)]/30"
     >
-      
       {imageUrl ? (
         <img
           src={imageUrl}
@@ -51,7 +50,11 @@ export default function ProductListCard({
             {isAuction ? (
               status ? (
                 <StatusBadge status={status} />
-              ) : null
+              ) : (
+                <span className="rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-3 py-1 text-xs text-[var(--accent)]">
+                  경매 상품
+                </span>
+              )
             ) : (
               <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
                 일반 거래
@@ -72,14 +75,24 @@ export default function ProductListCard({
           {isAuction ? (
             <>
               <div>
-                <p className="text-xs text-white/45">현재 입찰가</p>
+                <p className="text-xs text-white/45">
+                  {status === "FINISHED" ? "최종 가격" : "현재 입찰가"}
+                </p>
                 <p className="text-xl font-semibold text-white">
-                  {/* undefined를 따로 처리해주는 이유는 formatPrice 함수가 undefined를 처리하지 않기 때문에 */}
-                  {currentBidPrice !== undefined ? formatPrice(currentBidPrice) : "-"}
+                  {currentPrice !== undefined ? formatPrice(currentPrice) : "-"}
                 </p>
               </div>
 
-              {buyNowPrice && (
+              {startPrice !== undefined && startPrice !== null && (
+                <div>
+                  <p className="text-xs text-white/45">시작 입찰가</p>
+                  <p className="text-base font-medium text-white/80">
+                    {formatPrice(startPrice)}
+                  </p>
+                </div>
+              )}
+
+              {buyNowPrice !== undefined && buyNowPrice !== null && (
                 <div>
                   <p className="text-xs text-white/45">즉시 구매가</p>
                   <p className="text-base font-medium text-[var(--accent)]">
@@ -92,7 +105,9 @@ export default function ProductListCard({
             <div>
               <p className="text-xs text-white/45">판매가</p>
               <p className="text-xl font-semibold text-white">
-                {price !== undefined ? formatPrice(price) : "-"}
+                {buyNowPrice !== undefined && buyNowPrice !== null
+                  ? formatPrice(buyNowPrice)
+                  : "-"}
               </p>
             </div>
           )}

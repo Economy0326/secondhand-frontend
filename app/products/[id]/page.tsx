@@ -22,7 +22,7 @@ export default async function ProductDetailPage({ params }: Props) {
     auction = null;
   }
 
-  // isAuction 필요한 이유: 경매 상품인지 일반 거래 상품인지 구분하기 위해 필요
+  // isAuction 필요한 이유: 경매 상품인지 일반 거래 상품인지 구분하기 위해
   const isAuction = !!auction;
   const thumbnail =
     product.images.find((image) => image.isThumbnail)?.imageUrl ??
@@ -72,7 +72,9 @@ export default async function ProductDetailPage({ params }: Props) {
                   일반 거래
                 </span>
               )}
-              <span className="text-sm text-white/50">판매자 {product.sellerNickname}</span>
+              <span className="text-sm text-white/50">
+                판매자 {product.sellerNickname}
+              </span>
             </div>
 
             <h1 className="text-3xl font-semibold text-white md:text-4xl">
@@ -87,7 +89,9 @@ export default async function ProductDetailPage({ params }: Props) {
               {isAuction && auction ? (
                 <>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                    <p className="text-xs text-white/45">현재 입찰가</p>
+                    <p className="text-xs text-white/45">
+                      {auction.status === "FINISHED" ? "최종 가격" : "현재 입찰가"}
+                    </p>
                     <p className="mt-2 text-3xl font-semibold text-white">
                       {formatPrice(auction.currentPrice)}
                     </p>
@@ -95,16 +99,25 @@ export default async function ProductDetailPage({ params }: Props) {
 
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
                     <p className="text-xs text-white/45">시작 입찰가</p>
-                    <p className="mt-2 text-2xl font-semibold text-[var(--accent)]">
+                    <p className="mt-2 text-2xl font-semibold text-white">
                       {formatPrice(auction.startPrice)}
                     </p>
                   </div>
+
+                  {auction.buyNowPrice !== null && (
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                      <p className="text-xs text-white/45">즉시 구매가</p>
+                      <p className="mt-2 text-2xl font-semibold text-[var(--accent)]">
+                        {formatPrice(auction.buyNowPrice)}
+                      </p>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
                   <p className="text-xs text-white/45">판매가</p>
                   <p className="mt-2 text-3xl font-semibold text-white">
-                    {formatPrice(product.price)}
+                    {formatPrice(product.buyNowPrice)}
                   </p>
                 </div>
               )}
@@ -126,23 +139,29 @@ export default async function ProductDetailPage({ params }: Props) {
             )}
 
             <div className="mt-8 space-y-3">
-              {isAuction ? (
-                <>
-                  <div className="rounded-2xl border border-white/10 bg-[#0f1420] p-4">
-                    <label className="mb-2 block text-sm text-white/70">
-                      입찰 금액 입력
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="현재 입찰가보다 높은 금액을 입력하세요"
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-white/30"
-                    />
-                  </div>
+              {isAuction && auction ? (
+                auction.status === "RUNNING" ? (
+                  <>
+                    <div className="rounded-2xl border border-white/10 bg-[#0f1420] p-4">
+                      <label className="mb-2 block text-sm text-white/70">
+                        입찰 금액 입력
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="현재 입찰가보다 높은 금액을 입력하세요"
+                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-white/30"
+                      />
+                    </div>
 
-                  <button className="w-full rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-black transition hover:opacity-90">
-                    입찰하기
-                  </button>
-                </>
+                    <button className="w-full rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-black transition hover:opacity-90">
+                      입찰하기
+                    </button>
+                  </>
+                ) : (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                    현재 입찰할 수 없는 경매입니다.
+                  </div>
+                )
               ) : (
                 <button className="w-full rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-black transition hover:opacity-90">
                   구매하기
