@@ -1,14 +1,19 @@
 import { apiFetch } from "@/lib/api";
-import { CreateProductParams, Product } from "@/types/product";
+import { CreateProductParams, Product, ProductStatus } from "@/types/product";
 
 export function getProducts() {
   return apiFetch<Product[]>("/api/products");
+}
+
+export function getProductsByStatus(status: ProductStatus) {
+  return apiFetch<Product[]>(`/api/products/status/${status}`);
 }
 
 export function getProductDetail(productId: number) {
   return apiFetch<Product>(`/api/products/${productId}`);
 }
 
+// 상품 등록은 스웨거 상 쿼리 + multipart/form-data로 되어있어서, URLSearchParams와 FormData를 함께 사용하여 요청을 구성해야 함
 export async function createProduct(payload: CreateProductParams) {
   // FormData(): 파일 업로드를 포함한 폼 데이터를 쉽게 구성할 수 있도록 도와주는 웹 API
   const formData = new FormData();
@@ -21,12 +26,17 @@ export async function createProduct(payload: CreateProductParams) {
     title: payload.title,
     description: payload.description,
     category: payload.category,
-    price: String(payload.price),
-    isAuction: String(payload.isAuction ?? false),
+    buyNowPrice: String(payload.buyNowPrice),
+    currentPrice: String(payload.currentPrice),
+    isAuction: String(payload.isAuction),
   });
 
   if (payload.isAuction) {
-    if (!payload.startPrice || !payload.auctionStartTime || !payload.auctionEndTime) {
+    if (
+      payload.startPrice === undefined ||
+      !payload.auctionStartTime ||
+      !payload.auctionEndTime
+    ) {
       throw new Error("경매 상품은 시작가, 시작 시간, 종료 시간이 필요합니다.");
     }
 
@@ -39,6 +49,7 @@ export async function createProduct(payload: CreateProductParams) {
   return apiFetch<Product>(`/api/products?${params.toString()}`, {
     method: "POST",
     body: formData,
+    // auth: true -> 상품 등록 API는 인증이 필요한 API이기 때문에, apiFetch 함수에서 auth 옵션을 true로 설정하여 요청 헤더에 인증 토큰이 포함되도록 함
     auth: true,
   });
 }

@@ -11,7 +11,8 @@ type StoredUser = {
 export default function Header() {
   const [user, setUser] = useState<StoredUser>(null);
 
-  // useEffect 빈 배열일 경우 컴포넌트가 마운트될 때 한 번만 실행됨. getStoredUser 함수를 호출하여 로컬 스토리지에서 사용자 정보를 가져와 user 상태에 저장
+  // useEffect 빈 배열일 경우 컴포넌트가 마운트될 때 한 번만 실행됨.
+  // getStoredUser 함수를 호출하여 로컬 스토리지에서 사용자 정보를 가져와 user 상태에 저장
   useEffect(() => {
     setUser(getStoredUser());
   }, []);
@@ -30,10 +31,10 @@ export default function Header() {
 
         <nav className="hidden items-center gap-8 text-sm text-white/80 md:flex">
           <Link href="/products" className="transition hover:text-white">
-            상품
+            전체 상품
           </Link>
           <Link href="/auctions" className="transition hover:text-white">
-            경매
+            경매장
           </Link>
           <Link href="/sell" className="transition hover:text-white">
             판매하기

@@ -32,7 +32,6 @@ export default function MyPage() {
 
       {/* grid-cols-[280px_1fr]: 첫 번째 열은 280px 고정, 두 번째 열은 남은 공간을 차지하도록 설정 */}
       {/* fr: 남은 공간을 차지함 */}
-      
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         <aside className="luxury-panel h-fit p-4">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
