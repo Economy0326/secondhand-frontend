@@ -38,3 +38,10 @@ export interface CreateProductParams {
 
   images: File[];
 }
+
+export interface UpdateProductParams {
+  title: string;
+  description: string;
+  category: string;
+  buyNowPrice: number;
+}

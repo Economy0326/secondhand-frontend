@@ -1,5 +1,10 @@
 import { apiFetch } from "@/lib/api";
-import { CreateProductParams, Product, ProductStatus } from "@/types/product";
+import {
+  CreateProductParams,
+  Product,
+  ProductStatus,
+  UpdateProductParams,
+} from "@/types/product";
 
 export function getProducts() {
   return apiFetch<Product[]>("/api/products");
@@ -9,8 +14,56 @@ export function getProductsByStatus(status: ProductStatus) {
   return apiFetch<Product[]>(`/api/products/status/${status}`);
 }
 
+// 검색 + 상태 + 카테고리 통합 
+export function searchProducts(params: {
+  keyword?: string;
+  status?: ProductStatus;
+  category?: string;
+}) {
+  const searchParams = new URLSearchParams();
+
+  if (params.keyword) {
+    searchParams.append("keyword", params.keyword);
+  }
+
+  if (params.status) {
+    searchParams.append("status", params.status);
+  }
+
+  if (params.category) {
+    searchParams.append("category", params.category);
+  }
+
+  const queryString = searchParams.toString();
+
+  return apiFetch<Product[]>(
+    `/api/products/search${queryString ? `?${queryString}` : ""}`
+  );
+}
+
 export function getProductDetail(productId: number) {
   return apiFetch<Product>(`/api/products/${productId}`);
+}
+
+export function deleteProduct(productId: number) {
+  return apiFetch<void>(`/api/products/${productId}`, {
+    method: "DELETE",
+    auth: true,
+  });
+}
+
+export function updateProduct(productId: number, payload: UpdateProductParams) {
+  return apiFetch<Product>(`/api/products/${productId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+    auth: true,
+  });
+}
+
+export function getMyProducts() {
+  return apiFetch<Product[]>("/api/products/me", {
+    auth: true,
+  });
 }
 
 // 상품 등록은 스웨거 상 쿼리 + multipart/form-data로 되어있어서, URLSearchParams와 FormData를 함께 사용하여 요청을 구성해야 함

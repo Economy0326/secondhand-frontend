@@ -13,3 +13,24 @@ export interface LoginResponse {
   name: string;
   nickname: string;
 }
+
+export interface SignupRequest {
+  email: string;
+  password: string;
+  name: string;
+  nickname: string;
+  phoneNumber: string;
+  address: string;
+}
+
+export interface SignupResponse {
+  id: number;
+  email: string;
+  name: string;
+  nickname: string;
+  phoneNumber: string;
+  address: string;
+  role: "USER" | "ADMIN";
+  status: "ACTIVE" | "DELETED";
+  createdAt: string;
+}

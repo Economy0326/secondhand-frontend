@@ -14,7 +14,19 @@ export default function Header() {
   // useEffect 빈 배열일 경우 컴포넌트가 마운트될 때 한 번만 실행됨.
   // getStoredUser 함수를 호출하여 로컬 스토리지에서 사용자 정보를 가져와 user 상태에 저장
   useEffect(() => {
-    setUser(getStoredUser());
+    function syncUser() {
+      setUser(getStoredUser());
+    }
+
+    syncUser();
+
+    // 로그인/로그아웃 시 같은 탭에서 Header 상태를 바로 반영하기 위한 이벤트
+    // 헤더 상태 반영이 필요한 이유: 로그인/로그아웃 후 페이지를 새로고침하지 않아도 헤더의 로그인 상태가 즉시 업데이트되어야 사용자 경험이 향상됨
+    window.addEventListener("auth-change", syncUser);
+
+    return () => {
+      window.removeEventListener("auth-change", syncUser);
+    };
   }, []);
 
   function handleLogout() {
