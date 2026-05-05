@@ -4,6 +4,7 @@ if (!BASE_URL) {
   throw new Error("NEXT_PUBLIC_API_BASE_URL 환경변수가 설정되지 않았습니다.");
 }
 
+// type ApiOptions: apiFetch 함수에 전달되는 옵션 객체의 타입 정의
 type ApiOptions = RequestInit & {
   auth?: boolean;
 };
@@ -43,5 +44,11 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}) {
     throw new Error(text || "요청에 실패했습니다.");
   }
 
-  return response.json() as Promise<T>;
+  const text = await response.text();
+
+  if (!text) {
+    return undefined as T;
+  }
+
+  return JSON.parse(text) as T;
 }

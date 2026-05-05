@@ -1,7 +1,7 @@
 // use client: 이 컴포넌트가 클라이언트 측에서 렌더링되어야 함을 Next.js에 알리는 지시자입니다. 이를 통해 useState, useEffect와 같은 React 훅을 사용할 수 있습니다.
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createProduct } from "@/services/product.service";
 
@@ -29,8 +29,20 @@ export default function SellPage() {
   const [errorMessage, setErrorMessage] = useState("");
   // isPending: 상품 등록 요청이 진행 중인지 여부를 나타내는 상태. true이면 요청이 진행 중이고, false이면 요청이 완료되었거나 아직 시작되지 않았음을 의미
   const [isPending, setIsPending] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const isAuction = saleType === "AUCTION";
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("accessToken");
+
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    setIsCheckingAuth(false);
+  }, [router]);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     // Array.from: 유사 배열 객체나 반복 가능한 객체를 실제 배열로 변환하는 메서드
@@ -127,6 +139,16 @@ export default function SellPage() {
     } finally {
       setIsPending(false);
     }
+  }
+
+  if (isCheckingAuth) {
+    return (
+      <section className="container-default flex min-h-[calc(100vh-80px)] items-center justify-center">
+        <div className="luxury-panel p-8 text-center">
+          <p className="text-white/70">로그인 상태를 확인하는 중입니다.</p>
+        </div>
+      </section>
+    );
   }
 
   return (

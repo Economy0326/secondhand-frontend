@@ -1,4 +1,8 @@
 import StatusBadge from "@/components/common/StatusBadge";
+import BidForm from "@/components/product/BidForm";
+import LikeButton from "@/components/product/LikeButton";
+import ProductOwnerActions from "@/components/product/ProductOwnerActions";
+import QnaSection from "@/components/product/QnaSection";
 import { formatPrice } from "@/lib/format";
 import { getAuctionByProductId } from "@/services/auction.service";
 import { getProductDetail } from "@/services/product.service";
@@ -141,22 +145,11 @@ export default async function ProductDetailPage({ params }: Props) {
             <div className="mt-8 space-y-3">
               {isAuction && auction ? (
                 auction.status === "RUNNING" ? (
-                  <>
-                    <div className="rounded-2xl border border-white/10 bg-[#0f1420] p-4">
-                      <label className="mb-2 block text-sm text-white/70">
-                        입찰 금액 입력
-                      </label>
-                      <input
-                        type="number"
-                        placeholder="현재 입찰가보다 높은 금액을 입력하세요"
-                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-white/30"
-                      />
-                    </div>
-
-                    <button className="w-full rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-black transition hover:opacity-90">
-                      입찰하기
-                    </button>
-                  </>
+                  <BidForm
+                    auctionId={auction.id}
+                    currentPrice={auction.currentPrice}
+                    buyNowPrice={auction.buyNowPrice}
+                  />
                 ) : (
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
                     현재 입찰할 수 없는 경매입니다.
@@ -167,10 +160,16 @@ export default async function ProductDetailPage({ params }: Props) {
                   구매하기
                 </button>
               )}
+
+              <LikeButton productId={product.id} />
             </div>
+
+            <ProductOwnerActions productId={product.id} sellerId={product.sellerId} />
           </div>
         </div>
       </div>
+
+      <QnaSection productId={product.id} sellerId={product.sellerId} />
     </section>
   );
 }
