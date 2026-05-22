@@ -52,10 +52,49 @@ export function deleteProduct(productId: number) {
   });
 }
 
-export function updateProduct(productId: number, payload: UpdateProductParams) {
-  return apiFetch<Product>(`/api/products/${productId}`, {
+export async function updateProduct(
+  productId: number,
+  payload: UpdateProductParams
+) {
+  const formData = new FormData();
+
+  payload.images?.forEach((image) => {
+    formData.append("images", image);
+  });
+
+  const params = new URLSearchParams();
+
+  if (payload.title !== undefined) {
+    params.append("title", payload.title);
+  }
+
+  if (payload.description !== undefined) {
+    params.append("description", payload.description);
+  }
+
+  if (payload.category !== undefined) {
+    params.append("category", payload.category);
+  }
+
+  if (payload.buyNowPrice !== undefined) {
+    params.append("buyNowPrice", String(payload.buyNowPrice));
+  }
+
+  if (payload.startPrice !== undefined) {
+    params.append("startPrice", String(payload.startPrice));
+  }
+
+  if (payload.auctionStartTime !== undefined) {
+    params.append("auctionStartTime", payload.auctionStartTime);
+  }
+
+  if (payload.auctionEndTime !== undefined) {
+    params.append("auctionEndTime", payload.auctionEndTime);
+  }
+
+  return apiFetch<Product>(`/api/products/${productId}?${params.toString()}`, {
     method: "PATCH",
-    body: JSON.stringify(payload),
+    body: formData,
     auth: true,
   });
 }

@@ -1,3 +1,5 @@
+import { AuctionStatus } from "@/types/auction";
+
 export type ProductStatus = "SALE" | "AUCTION" | "SOLD";
 
 export interface ProductImage {
@@ -14,11 +16,17 @@ export interface Product {
   description: string;
   category: string;
 
+  startPrice?: number | null;
   buyNowPrice: number;
   currentPrice: number;
-  startPrice: number | null;
 
   status: ProductStatus;
+  likeCount: number;
+
+  auctionStartTime?: string | null;
+  auctionEndTime?: string | null;
+  auctionStatus?: AuctionStatus | null;
+
   images: ProductImage[];
   createdAt: string;
 }
@@ -40,8 +48,14 @@ export interface CreateProductParams {
 }
 
 export interface UpdateProductParams {
-  title: string;
-  description: string;
-  category: string;
-  buyNowPrice: number;
+  title?: string;
+  description?: string;
+  category?: string;
+
+  buyNowPrice?: number;
+  startPrice?: number;
+  auctionStartTime?: string;
+  auctionEndTime?: string;
+
+  images?: File[];
 }

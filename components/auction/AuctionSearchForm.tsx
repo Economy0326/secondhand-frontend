@@ -40,6 +40,7 @@ export default function AuctionSearchForm({
   }
 
   function handleReset() {
+    // URLSearchParams: URL의 쿼리 문자열을 쉽게 조작할 수 있도록 도와주는 인터페이스 -> URLSearchParams 객체를 생성하여 쿼리 매개변수를 설정하거나 가져올 수 있음
     const params = new URLSearchParams();
 
     if (status) {

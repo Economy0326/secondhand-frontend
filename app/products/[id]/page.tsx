@@ -6,6 +6,11 @@ import QnaSection from "@/components/product/QnaSection";
 import { formatPrice } from "@/lib/format";
 import { getAuctionByProductId } from "@/services/auction.service";
 import { getProductDetail } from "@/services/product.service";
+import {
+  getAuctionDetailMessage,
+  getAuctionPriceLabel,
+  getAuctionTimeText,
+} from "@/lib/auction-ui";
 
 type Props = {
   // Promise: getStaticProps나 getServerSideProps에서 반환된 props는 Promise로 감싸져 있기 때문에, params도 Promise로 감싸져 있다고 가정
@@ -81,6 +86,21 @@ export default async function ProductDetailPage({ params }: Props) {
               </span>
             </div>
 
+            {isAuction && auction && (
+              <div className="mb-6 rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent)]/10 p-4">
+                <p className="text-sm font-medium text-[var(--accent)]">
+                  {getAuctionTimeText({
+                    status: auction.status,
+                    startTime: auction.startTime,
+                    endTime: auction.endTime,
+                  })}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-white/65">
+                  {getAuctionDetailMessage(auction.status)}
+                </p>
+              </div>
+            )}
+
             <h1 className="text-3xl font-semibold text-white md:text-4xl">
               {product.title}
             </h1>
@@ -94,7 +114,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 <>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
                     <p className="text-xs text-white/45">
-                      {auction.status === "FINISHED" ? "최종 가격" : "현재 입찰가"}
+                      {getAuctionPriceLabel(auction.status)}
                     </p>
                     <p className="mt-2 text-3xl font-semibold text-white">
                       {formatPrice(auction.currentPrice)}
@@ -164,7 +184,8 @@ export default async function ProductDetailPage({ params }: Props) {
               <LikeButton productId={product.id} />
             </div>
 
-            <ProductOwnerActions productId={product.id} sellerId={product.sellerId} />
+            {/* 취소가능 조건에 따라 버튼 표시 */}
+            <ProductOwnerActions productId={product.id} sellerId={product.sellerId} auction={auction} />
           </div>
         </div>
       </div>

@@ -1,9 +1,11 @@
+// 상품 검색 페이지에서는 검색어, 상태, 카테고리 세 가지 조건을 모두 지원해야 하므로, URLSearchParams를 활용하여 쿼리 문자열을 구성하고 이를 기반으로 API 요청을 보내는 방식으로 구현
 import Link from "next/link";
 import SectionTitle from "@/components/common/SectionTitle";
 import ProductListCard from "@/components/product/ProductListCard";
 import ProductSearchForm from "@/components/product/ProductSearchForm";
 import { getProducts, searchProducts } from "@/services/product.service";
 import { ProductStatus } from "@/types/product";
+import { PRODUCT_CATEGORIES } from "@/constants/categories";
 
 type Props = {
   searchParams?: Promise<{
@@ -12,17 +14,6 @@ type Props = {
     category?: string;
   }>;
 };
-
-// 상품 검색 페이지에서는 검색어, 상태, 카테고리 세 가지 조건을 모두 지원해야 하므로, URLSearchParams를 활용하여 쿼리 문자열을 구성하고 이를 기반으로 API 요청을 보내는 방식으로 구현
-const categories = [
-  "전자기기",
-  "패션",
-  "가구",
-  "도서",
-  "여행 용품",
-  "자동차 용품",
-  "기타",
-];
 
 function getThumbnailUrl(
   images?: { imageUrl: string; isThumbnail: boolean }[]
@@ -151,7 +142,7 @@ export default async function ProductsPage({ searchParams }: Props) {
             전체 카테고리
           </Link>
 
-          {categories.map((item) => (
+          {PRODUCT_CATEGORIES.map((item) => (
             <Link
               key={item}
               href={createCategoryHref(item)}
@@ -189,7 +180,10 @@ export default async function ProductsPage({ searchParams }: Props) {
               currentPrice={product.currentPrice}
               buyNowPrice={product.buyNowPrice}
               startPrice={product.startPrice}
-              likes={0}
+              likes={product.likeCount}
+              status={product.auctionStatus ?? undefined}
+              auctionStartTime={product.auctionStartTime}
+              auctionEndTime={product.auctionEndTime}
             />
           ))}
         </div>

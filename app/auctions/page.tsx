@@ -4,6 +4,7 @@ import AuctionSearchForm from "@/components/auction/AuctionSearchForm";
 import ProductListCard from "@/components/product/ProductListCard";
 import { getAuctions, searchAuctions } from "@/services/auction.service";
 import { AuctionStatus } from "@/types/auction";
+import { PRODUCT_CATEGORIES } from "@/constants/categories";
 
 type Props = {
   searchParams?: Promise<{
@@ -14,16 +15,6 @@ type Props = {
 };
 
 type AuctionStatusFilter = AuctionStatus | "ALL";
-
-const categories = [
-  "전자기기",
-  "패션",
-  "가구",
-  "도서",
-  "여행 용품",
-  "자동차 용품",
-  "기타",
-];
 
 function isAuctionStatus(value?: string): value is AuctionStatus {
   return (
@@ -179,7 +170,7 @@ export default async function AuctionsPage({ searchParams }: Props) {
             전체 카테고리
           </Link>
 
-          {categories.map((item) => (
+          {PRODUCT_CATEGORIES.map((item) => (
             <Link
               key={item}
               href={createCategoryHref(item)}
@@ -222,8 +213,10 @@ export default async function AuctionsPage({ searchParams }: Props) {
               currentPrice={auction.currentPrice}
               buyNowPrice={auction.buyNowPrice}
               startPrice={auction.startPrice}
-              likes={0}
+              likes={auction.likeCount}
               status={auction.status}
+              auctionStartTime={auction.startTime}
+              auctionEndTime={auction.endTime}
             />
           ))}
         </div>
