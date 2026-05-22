@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createProduct } from "@/services/product.service";
+import { PRODUCT_CATEGORIES } from "@/constants/categories";
 
 type SaleType = "SALE" | "AUCTION";
 
@@ -29,6 +30,7 @@ export default function SellPage() {
   const [errorMessage, setErrorMessage] = useState("");
   // isPending: 상품 등록 요청이 진행 중인지 여부를 나타내는 상태. true이면 요청이 진행 중이고, false이면 요청이 완료되었거나 아직 시작되지 않았음을 의미
   const [isPending, setIsPending] = useState(false);
+  // isCheckingAuth: 사용자의 로그인 상태를 확인하는 중인지 여부를 나타내는 상태. true이면 로그인 상태를 확인하는 중이고, false이면 로그인 상태 확인이 완료되었음을 의미
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const isAuction = saleType === "AUCTION";
@@ -73,7 +75,7 @@ export default function SellPage() {
       }
 
       if (!category.trim()) {
-        throw new Error("카테고리를 입력해주세요.");
+        throw new Error("카테고리를 선택해주세요.");
       }
 
       if (images.length === 0) {
@@ -198,13 +200,18 @@ export default function SellPage() {
 
           <div>
             <label className="mb-2 block text-sm text-white/70">카테고리</label>
-            <input
-              type="text"
-              placeholder="예: 전자기기, 여행 용품, 자동차 용품"
+            <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-white/30"
-            />
+              className="w-full rounded-2xl border border-white/10 bg-[#121826] px-4 py-3 text-white outline-none"
+            >
+              <option value="">카테고리를 선택하세요</option>
+              {PRODUCT_CATEGORIES.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

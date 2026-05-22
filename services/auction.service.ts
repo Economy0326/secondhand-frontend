@@ -39,3 +39,10 @@ export function searchAuctions(params: {
     `/api/auctions/search${queryString ? `?${queryString}` : ""}`
   );
 }
+
+export function cancelAuction(auctionId: number) {
+  return apiFetch<void>(`/api/auctions/${auctionId}/cancel`, {
+    method: "PATCH",
+    auth: true,
+  });
+}

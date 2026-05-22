@@ -1,6 +1,10 @@
 import Link from "next/link";
 import StatusBadge from "@/components/common/StatusBadge";
 import { formatPrice } from "@/lib/format";
+import {
+  getAuctionPriceLabel,
+  getAuctionTimeText,
+} from "@/lib/auction-ui";
 
 type Props = {
   id: number;
@@ -9,10 +13,13 @@ type Props = {
   imageUrl?: string;
   isAuction: boolean;
   currentPrice?: number;
-  buyNowPrice?: number | null;
+  currentBidPrice?: number;
   startPrice?: number | null;
+  buyNowPrice?: number | null;
   likes?: number;
   status?: "READY" | "RUNNING" | "FINISHED" | "FAILED" | "CANCELLED";
+  auctionStartTime?: string | null;
+  auctionEndTime?: string | null;
 };
 // 추가로 렌더링 할 때는 formatPrice 함수를 이용
 
@@ -23,11 +30,16 @@ export default function ProductListCard({
   imageUrl,
   isAuction,
   currentPrice,
-  buyNowPrice,
+  currentBidPrice,
   startPrice,
+  buyNowPrice,
   likes = 0,
   status,
+  auctionStartTime,
+  auctionEndTime,
 }: Props) {
+  const displayCurrentPrice = currentPrice ?? currentBidPrice;
+
   return (
     <Link
       href={`/products/${id}`}
@@ -65,6 +77,17 @@ export default function ProductListCard({
           <span className="text-sm text-white/50">♥ {likes}</span>
         </div>
 
+        {/* 남은 시간 표시 */}
+        {isAuction && status && (
+          <p className="mb-3 text-xs text-white/45">
+            {getAuctionTimeText({
+              status,
+              startTime: auctionStartTime,
+              endTime: auctionEndTime,
+            })}
+          </p>
+        )}
+
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         {/* line-clamp-2: 최대 2줄까지만 보이도록, 넘치는 부분은 ...으로 처리 */}
         <p className="mt-2 line-clamp-2 text-sm leading-6 text-white/55">
@@ -76,10 +99,12 @@ export default function ProductListCard({
             <>
               <div>
                 <p className="text-xs text-white/45">
-                  {status === "FINISHED" ? "최종 가격" : "현재 입찰가"}
+                  {getAuctionPriceLabel(status)}
                 </p>
                 <p className="text-xl font-semibold text-white">
-                  {currentPrice !== undefined ? formatPrice(currentPrice) : "-"}
+                  {displayCurrentPrice !== undefined
+                    ? formatPrice(displayCurrentPrice)
+                    : "-"}
                 </p>
               </div>
 

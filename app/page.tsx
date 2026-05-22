@@ -1,5 +1,7 @@
 import HeroSection from "@/components/home/HeroSection";
-import FeaturedAuctionSection from "@/components/home/FeaturedAuctionSection";
+import ClosingSoonAuctionSection from "@/components/home/ClosingSoonAuctionSection";
+import PopularProductSection from "@/components/home/PopularProductSection";
+import AuctionGuideSection from "@/components/home/AuctionGuideSection";
 
 export default function HomePage() {
   return (
@@ -7,8 +9,14 @@ export default function HomePage() {
       {/* 메인 히어로 영역 */}
       <HeroSection />
 
-      {/* 대표 경매 상품 목록 */}
-      <FeaturedAuctionSection />
+      {/* 마감 임박 경매 */}
+      <ClosingSoonAuctionSection />
+
+      {/* 인기 상품 */}
+      <PopularProductSection />
+
+      {/* 경매 이용 방법 안내 */}
+      <AuctionGuideSection />
     </div>
   );
 }

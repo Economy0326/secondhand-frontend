@@ -19,6 +19,7 @@ export interface Auction {
   endTime: string;
   status: AuctionStatus;
   bidCount: number;
+  likeCount: number;
 
   winnerId: number | null;
   winnerNickname: string | null;

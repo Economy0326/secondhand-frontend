@@ -460,18 +460,36 @@ export default function MyPage() {
                 ) : (
                   <div className="grid gap-6 xl:grid-cols-2">
                     {myProducts.map((product) => (
-                      <ProductListCard
-                        key={product.id}
-                        id={product.id}
-                        title={product.title}
-                        description={product.description}
-                        imageUrl={getThumbnailUrl(product.images)}
-                        isAuction={product.status === "AUCTION"}
-                        currentPrice={product.currentPrice}
-                        buyNowPrice={product.buyNowPrice}
-                        startPrice={product.startPrice}
-                        likes={0}
-                      />
+                      <div key={product.id} className="space-y-3">
+                        <ProductListCard
+                          id={product.id}
+                          title={product.title}
+                          description={product.description}
+                          imageUrl={getThumbnailUrl(product.images)}
+                          isAuction={product.status === "AUCTION"}
+                          currentPrice={product.currentPrice}
+                          buyNowPrice={product.buyNowPrice}
+                          startPrice={product.startPrice}
+                          likes={product.likeCount}
+                        />
+
+                        {/* 실수 방지를 위해서 삭제 버튼은 판매자 관리에서 처리 */}
+                        <div className="flex flex-wrap gap-3">
+                          <Link
+                            href={`/products/${product.id}/edit`}
+                            className="rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-5 py-2 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)]/15"
+                          >
+                            수정하기
+                          </Link>
+
+                          <Link
+                            href={`/products/${product.id}`}
+                            className="rounded-full border border-white/10 px-5 py-2 text-sm font-semibold text-white/75 transition hover:bg-white/5"
+                          >
+                            상세 보기
+                          </Link>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -531,14 +549,15 @@ export default function MyPage() {
             </>
           )}
 
+          {/* 내 찜 목록 카드형으로 표시*/}
           {activeTab === "MY_LIKES" && (
             <>
               <h2 className="text-2xl font-semibold text-white">내 찜 목록</h2>
               <p className="mt-3 text-sm leading-6 text-white/60">
-                내가 찜한 상품을 확인할 수 있습니다.
+                내가 찜한 상품을 카드로 확인할 수 있습니다.
               </p>
 
-              <div className="mt-8 space-y-3">
+              <div className="mt-8">
                 {isLoadingLikes ? (
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-white/60">
                     찜 목록을 불러오는 중입니다.
@@ -548,31 +567,48 @@ export default function MyPage() {
                     아직 찜한 상품이 없습니다.
                   </div>
                 ) : (
-                  myLikes.map((like) => (
-                    <div
-                      key={like.likeId}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-5"
-                    >
-                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div>
-                          <p className="text-lg font-semibold text-white">
-                            {like.productTitle}
-                          </p>
-                          <p className="mt-2 text-sm text-white/45">
-                            찜한 날짜{" "}
-                            {new Date(like.createdAt).toLocaleString("ko-KR")}
-                          </p>
-                        </div>
-
-                        <Link
-                          href={`/products/${like.productId}`}
-                          className="rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-5 py-2 text-center text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)]/15"
+                  <div className="grid gap-6 xl:grid-cols-2">
+                    {myLikes.map((like) =>
+                      like.product ? (
+                        <ProductListCard
+                          key={like.likeId}
+                          id={like.product.id}
+                          title={like.product.title}
+                          description={like.product.description}
+                          imageUrl={getThumbnailUrl(like.product.images)}
+                          isAuction={like.product.status === "AUCTION"}
+                          currentPrice={like.product.currentPrice}
+                          buyNowPrice={like.product.buyNowPrice}
+                          startPrice={like.product.startPrice}
+                          likes={like.product.likeCount}
+                        />
+                      ) : (
+                        <div
+                          key={like.likeId}
+                          className="rounded-2xl border border-white/10 bg-white/5 p-5"
                         >
-                          상품 보러가기
-                        </Link>
-                      </div>
-                    </div>
-                  ))
+                          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <div>
+                              <p className="text-lg font-semibold text-white">
+                                {like.productTitle}
+                              </p>
+                              <p className="mt-2 text-sm text-white/45">
+                                찜한 날짜{" "}
+                                {new Date(like.createdAt).toLocaleString("ko-KR")}
+                              </p>
+                            </div>
+
+                            <Link
+                              href={`/products/${like.productId}`}
+                              className="rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-5 py-2 text-center text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)]/15"
+                            >
+                              상품 보러가기
+                            </Link>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
                 )}
               </div>
             </>
