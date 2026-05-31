@@ -11,10 +11,24 @@
 
 SecondHand Platform은 일반 중고거래와 경매 거래를 함께 지원하는 서비스입니다.
 
-사용자는 일반 상품을 고정 가격으로 등록하거나, 경매 상품을 등록해 입찰을 받을 수 있습니다.  
-이 프로젝트에서 프론트엔드는 상품 유형과 경매 상태에 따라 가격 표시, 버튼 상태, 안내 문구, 입력 폼을 다르게 구성하는 데 집중했습니다.
+이 프로젝트에서 프론트엔드는 상품 유형과 경매 상태에 따라  
+가격 표시, 버튼 상태, 안내 문구, 입력 폼을 다르게 구성하는 데 집중했습니다.
 
-또한 Swagger/API 명세를 기준으로 상품, 경매, 인증, 입찰, 찜, QnA, 유저 도메인의 타입과 service 계층을 분리해 API 연동 구조를 정리했습니다.
+또한 Swagger/API 명세를 기준으로 상품, 경매, 인증, 입찰, 찜, QnA, 유저 도메인의  
+타입과 service 계층을 분리해 API 연동 구조를 정리했습니다.
+
+---
+
+## 기술 스택
+
+| 구분 | 기술 |
+| --- | --- |
+| Framework | Next.js |
+| Language | TypeScript |
+| Styling | Tailwind CSS / Global CSS |
+| API | Service 기반 API 연동 |
+| Auth | JWT 기반 인증 |
+| Image | 이미지 업로드 정책 고려 |
 
 ---
 
@@ -72,7 +86,7 @@ isAuction: false
 - 현재 입찰가 표시
 - 즉시 구매가 선택 제공
 - 경매 시작 시간 / 종료 시간 표시
-- 경매 상태에 따라 버튼과 안내 문구 변경
+- 경매 상태에 따른 버튼 및 안내 문구 변경
 
 ```ts
 isAuction: true
@@ -105,19 +119,6 @@ type AuctionStatus = 'READY' | 'RUNNING' | 'FINISHED' | 'FAILED' | 'CANCELLED'
 
 ---
 
-## 기술 스택
-
-| 구분 | 기술 |
-| --- | --- |
-| Framework | Next.js |
-| Language | TypeScript |
-| Styling | Tailwind CSS / Global CSS |
-| API | Service 기반 API 연동 |
-| Auth | JWT 기반 인증 |
-| Image | 이미지 업로드 정책 고려 |
-
----
-
 ## 핵심 구현
 
 ### 1. 일반 거래와 경매 거래 분리
@@ -125,8 +126,8 @@ type AuctionStatus = 'READY' | 'RUNNING' | 'FINISHED' | 'FAILED' | 'CANCELLED'
 상품 타입을 `isAuction` 기준으로 구분하고,  
 일반 상품과 경매 상품의 화면 흐름을 다르게 구성했습니다.
 
-일반 상품은 고정 가격과 판매 상태가 중요하고,  
-경매 상품은 현재 입찰가, 시작 시간, 종료 시간, 남은 시간, 경매 상태가 중요합니다.
+일반 상품은 고정 가격과 판매 상태를 중심으로 보여주고,  
+경매 상품은 현재 입찰가, 시작 시간, 종료 시간, 남은 시간, 경매 상태를 중심으로 보여줍니다.
 
 ```tsx
 if (product.isAuction) {
@@ -140,7 +141,8 @@ return <ProductDetail product={product} />
 
 ### 2. 경매 상태별 UI 처리
 
-경매 상품은 `READY`, `RUNNING`, `FINISHED`, `FAILED`, `CANCELLED` 상태에 따라 버튼과 안내 문구가 달라집니다.
+경매 상품은 `READY`, `RUNNING`, `FINISHED`, `FAILED`, `CANCELLED` 상태에 따라  
+버튼 활성화 여부와 안내 문구가 달라지도록 처리했습니다.
 
 ```ts
 function getAuctionStatusLabel(status: AuctionStatus) {
@@ -160,8 +162,6 @@ function getAuctionStatusLabel(status: AuctionStatus) {
   }
 }
 ```
-
-상태별로 사용자가 가능한 행동도 다르게 처리했습니다.
 
 | 상태 | 입찰 버튼 | 안내 문구 |
 | --- | --- | --- |
@@ -188,7 +188,8 @@ function getAuctionStatusLabel(status: AuctionStatus) {
 - 남은 시간
 - 카테고리
 
-이를 통해 상품 목록, 홈 화면, 마이페이지의 UI를 일관되게 유지하고, 반복되는 카드 UI를 재사용할 수 있도록 했습니다.
+이를 통해 상품 목록, 홈 화면, 마이페이지의 UI를 일관되게 유지하고,  
+반복되는 카드 UI를 재사용할 수 있도록 했습니다.
 
 ---
 
@@ -209,7 +210,8 @@ function getAuctionStatusLabel(status: AuctionStatus) {
       └─ 종료 시간 입력
 ```
 
-판매 방식에 따라 필요한 입력값이 다르기 때문에, 같은 판매 등록 페이지 안에서 폼 구조와 검증 기준을 다르게 구성했습니다.
+판매 방식에 따라 필요한 입력값과 검증 기준이 다르기 때문에,  
+같은 등록 페이지 안에서 폼 구조를 분기했습니다.
 
 ---
 
@@ -222,7 +224,7 @@ function getAuctionStatusLabel(status: AuctionStatus) {
 - 상품 상태 필터
 - 경매 상태 필터
 
-필터 조건은 한 가지씩만 적용되는 것이 아니라, 검색어와 카테고리, 상태 조건이 함께 적용될 수 있도록 설계했습니다.
+검색어, 카테고리, 상태 조건이 함께 적용될 수 있도록 query 생성 로직을 분리했습니다.
 
 ---
 
@@ -240,9 +242,10 @@ function getAuctionStatusLabel(status: AuctionStatus) {
 
 ### 7. API 명세 기반 service / type 분리
 
-Swagger 명세를 기준으로 도메인별 타입과 API service를 먼저 정리했습니다.
+Swagger 명세를 기준으로 도메인별 타입과 API service를 정리했습니다.
 
-페이지나 컴포넌트에서 직접 API 요청을 작성하지 않고, 도메인별 service 함수를 호출하는 구조를 사용했습니다.
+페이지나 컴포넌트에서 직접 API 요청을 작성하지 않고,  
+도메인별 service 함수를 호출하는 구조를 사용했습니다.
 
 ```text
 Page / Component
@@ -266,9 +269,10 @@ Backend API
 
 ### 8. 경매 상품 수정 / 취소 정책 정리
 
-경매 상품은 일반 상품처럼 언제든 자유롭게 수정하거나 취소하기 어렵습니다.
+경매 상품은 상태에 따라 수정 가능 범위와 취소 가능 조건이 달라지도록 정리했습니다.
 
-이미 입찰이 시작된 상품의 가격, 이미지, 시작 시간 등이 바뀌면 입찰자의 신뢰에 영향을 줄 수 있기 때문에, 경매 상태에 따라 수정 가능 범위와 취소 가능 조건을 다르게 정리했습니다.
+이미 입찰이 시작된 상품의 가격, 이미지, 시작 시간 등이 바뀌면  
+입찰자의 신뢰에 영향을 줄 수 있기 때문에 상태별 정책을 분리했습니다.
 
 #### 상품 수정 정책
 
@@ -309,7 +313,8 @@ FINISHED / FAILED / CANCELLED
 
 ## 테스트
 
-경매 상품은 상태에 따라 수정 가능 범위와 취소 가능 조건이 달라지기 때문에, 해당 정책을 UI 안에 직접 흩뿌리지 않고 별도 함수로 분리해 테스트했습니다.
+경매 상품은 상태에 따라 수정 가능 범위와 취소 가능 조건이 달라지기 때문에,  
+정책 로직을 별도 함수로 분리해 테스트했습니다.
 
 ### 테스트 대상
 
@@ -317,7 +322,9 @@ FINISHED / FAILED / CANCELLED
 - RUNNING 상태의 수정 제한 정책
 - FINISHED / FAILED / CANCELLED 상태의 수정 불가 정책
 - 경매 취소 가능 조건
-- 검색/필터 query 생성 로직
+- 검색 / 필터 query 생성 로직
+
+---
 
 ## 프로젝트 구조
 
@@ -380,11 +387,13 @@ npm run dev
 
 ---
 
-## Test
+## 테스트 실행
 
 ```bash
 npm test
 ```
+
+---
 
 ## 환경 변수
 
