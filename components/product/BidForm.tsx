@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBid } from "@/services/bid.service";
 import { formatPrice } from "@/lib/format";
+import { getBidAmountError } from "@/lib/auction-policy";
 
 type Props = {
   auctionId: number;
@@ -33,22 +34,14 @@ export default function BidForm({
 
       const parsedBidPrice = Number(bidPrice);
 
-      if (!parsedBidPrice || parsedBidPrice <= 0) {
-        throw new Error("입찰 금액을 올바르게 입력해주세요.");
-      }
+      const bidAmountError = getBidAmountError({
+        bidAmount: parsedBidPrice,
+        currentPrice,
+        buyNowPrice,
+      });
 
-      if (parsedBidPrice <= currentPrice) {
-        throw new Error(
-          `현재 입찰가 ${formatPrice(currentPrice)}보다 높은 금액을 입력해주세요.`
-        );
-      }
-
-      if (buyNowPrice !== undefined && buyNowPrice !== null) {
-        if (parsedBidPrice > buyNowPrice) {
-          throw new Error(
-            `입찰 금액은 즉시 구매가 ${formatPrice(buyNowPrice)}를 초과할 수 없습니다.`
-          );
-        }
+      if (bidAmountError) {
+        throw new Error(bidAmountError);
       }
 
       await createBid(auctionId, {

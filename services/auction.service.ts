@@ -1,5 +1,6 @@
 import { apiFetch } from "@/lib/api";
 import { Auction, AuctionStatus } from "@/types/auction";
+import { buildSearchQuery } from "@/lib/product-query";
 
 export function getAuctions() {
   return apiFetch<Auction[]>("/api/auctions");
@@ -19,21 +20,7 @@ export function searchAuctions(params: {
   status?: AuctionStatus;
   category?: string;
 }) {
-  const searchParams = new URLSearchParams();
-
-  if (params.keyword) {
-    searchParams.append("keyword", params.keyword);
-  }
-
-  if (params.status) {
-    searchParams.append("status", params.status);
-  }
-
-  if (params.category) {
-    searchParams.append("category", params.category);
-  }
-
-  const queryString = searchParams.toString();
+  const queryString = buildSearchQuery(params);
 
   return apiFetch<Auction[]>(
     `/api/auctions/search${queryString ? `?${queryString}` : ""}`
