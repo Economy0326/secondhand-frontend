@@ -313,15 +313,27 @@ FINISHED / FAILED / CANCELLED
 
 ## 테스트
 
-경매 상품은 상태에 따라 수정 가능 범위와 취소 가능 조건이 달라지기 때문에,  
-정책 로직을 별도 함수로 분리해 테스트했습니다.
+경매 상품은 상태, 로그인 여부, 판매자 여부, 입찰 금액에 따라 입찰 가능 여부가 달라지고,
+검색 / 필터 조건은 API 요청 query string으로 변환되어야 하기 때문에
+관련 로직을 별도 유틸 함수로 분리해 테스트했습니다.
 
 ### 테스트 대상
 
-- READY 상태의 경매 상품 수정 가능 범위
-- RUNNING 상태의 수정 제한 정책
-- FINISHED / FAILED / CANCELLED 상태의 수정 불가 정책
-- 경매 취소 가능 조건
+- 입찰 금액 검증 로직
+  - 0원 이하 금액 입력 제한
+  - 현재 입찰가 이하 금액 제한
+  - 즉시 구매가 초과 금액 제한
+  - 정상 입찰 금액 검증
+- 입찰 가능 여부 판단 로직
+  - 비로그인 사용자 입찰 제한
+  - 판매자 본인 입찰 제한
+  - RUNNING 상태에서만 입찰 가능
+  - READY / FINISHED 상태 입찰 제한
+- 경매 상태별 UI 문구 처리
+  - 남은 시간 표시
+  - 상태별 안내 문구
+  - 상태별 가격 라벨
+- 가격 포맷팅 로직
 - 검색 / 필터 query 생성 로직
 
 ---
@@ -349,10 +361,13 @@ secondhand-frontend
 │  └─ product
 │
 ├─ constants
+│
 ├─ lib
 │  ├─ api.ts
+│  ├─ auction-policy.ts
 │  ├─ auction-ui.ts
 │  ├─ format.ts
+│  ├─ product-query.ts
 │  └─ storage.ts
 │
 ├─ services
@@ -372,6 +387,12 @@ secondhand-frontend
 │  ├─ product.ts
 │  ├─ qna.ts
 │  └─ user.ts
+│
+├─ __tests__
+│  ├─ auction-policy.test.ts
+│  ├─ auction_ui.test.ts
+│  ├─ format.test.ts
+│  └─ product-query.test.ts
 │
 └─ public
 ```
