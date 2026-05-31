@@ -5,6 +5,7 @@ import {
   ProductStatus,
   UpdateProductParams,
 } from "@/types/product";
+import { buildSearchQuery } from "@/lib/product-query";
 
 export function getProducts() {
   return apiFetch<Product[]>("/api/products");
@@ -20,21 +21,7 @@ export function searchProducts(params: {
   status?: ProductStatus;
   category?: string;
 }) {
-  const searchParams = new URLSearchParams();
-
-  if (params.keyword) {
-    searchParams.append("keyword", params.keyword);
-  }
-
-  if (params.status) {
-    searchParams.append("status", params.status);
-  }
-
-  if (params.category) {
-    searchParams.append("category", params.category);
-  }
-
-  const queryString = searchParams.toString();
+  const queryString = buildSearchQuery(params);
 
   return apiFetch<Product[]>(
     `/api/products/search${queryString ? `?${queryString}` : ""}`
