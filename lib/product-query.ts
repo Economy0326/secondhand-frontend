@@ -7,16 +7,20 @@ type SearchQueryParams = {
 export function buildSearchQuery(params: SearchQueryParams) {
   const searchParams = new URLSearchParams();
 
-  if (params.keyword) {
-    searchParams.append("keyword", params.keyword);
+  const keyword = params.keyword?.trim();
+  const status = params.status?.trim();
+  const category = params.category?.trim();
+
+  if (keyword) {
+    searchParams.append("keyword", keyword);
   }
 
-  if (params.status) {
-    searchParams.append("status", params.status);
+  if (status) {
+    searchParams.append("status", status);
   }
 
-  if (params.category) {
-    searchParams.append("category", params.category);
+  if (category) {
+    searchParams.append("category", category);
   }
 
   return searchParams.toString();
