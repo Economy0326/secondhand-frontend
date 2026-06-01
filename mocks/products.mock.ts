@@ -1,0 +1,130 @@
+// mocks/products.mock.ts
+import type { Product } from "@/types/product";
+
+const now = new Date();
+
+const addHours = (hours: number) =>
+  new Date(now.getTime() + hours * 60 * 60 * 1000).toISOString();
+
+export const mockProducts: Product[] = [
+  {
+    id: 1,
+    sellerId: 101,
+    sellerNickname: "denim_seller",
+    title: "빈티지 데님 자켓",
+    description: "상태 좋은 데님 자켓입니다. 간절기에 입기 좋아요.",
+    category: "패션",
+    startPrice: null,
+    buyNowPrice: 45000,
+    currentPrice: 45000,
+    status: "SALE",
+    likeCount: 34,
+    auctionStartTime: null,
+    auctionEndTime: null,
+    auctionStatus: null,
+    images: [
+      {
+        id: 1,
+        imageUrl: "/mock/product-denim.jpg",
+        isThumbnail: true,
+      },
+    ],
+    createdAt: addHours(-72),
+  },
+  {
+    id: 2,
+    sellerId: 102,
+    sellerNickname: "keyboard_shop",
+    title: "기계식 키보드",
+    description: "타건감 좋은 갈축 키보드입니다.",
+    category: "디지털기기",
+    startPrice: null,
+    buyNowPrice: 62000,
+    currentPrice: 62000,
+    status: "SALE",
+    likeCount: 28,
+    auctionStartTime: null,
+    auctionEndTime: null,
+    auctionStatus: null,
+    images: [
+      {
+        id: 2,
+        imageUrl: "/mock/product-keyboard.jpg",
+        isThumbnail: true,
+      },
+    ],
+    createdAt: addHours(-48),
+  },
+  {
+    id: 3,
+    sellerId: 103,
+    sellerNickname: "sound_market",
+    title: "미개봉 무선 헤드폰",
+    description: "선물받았지만 사용하지 않은 미개봉 제품입니다.",
+    category: "디지털기기",
+    startPrice: 70000,
+    buyNowPrice: 160000,
+    currentPrice: 70000,
+    status: "AUCTION",
+    likeCount: 21,
+    auctionStartTime: addHours(5),
+    auctionEndTime: addHours(30),
+    auctionStatus: "READY",
+    images: [
+      {
+        id: 3,
+        imageUrl: "/mock/product-headphone.jpg",
+        isThumbnail: true,
+      },
+    ],
+    createdAt: addHours(-24),
+  },
+  {
+    id: 4,
+    sellerId: 104,
+    sellerNickname: "camera_user",
+    title: "빈티지 필름 카메라",
+    description: "정상 작동하는 필름 카메라입니다.",
+    category: "디지털기기",
+    startPrice: 50000,
+    buyNowPrice: 130000,
+    currentPrice: 82000,
+    status: "AUCTION",
+    likeCount: 43,
+    auctionStartTime: addHours(-2),
+    auctionEndTime: addHours(3),
+    auctionStatus: "RUNNING",
+    images: [
+      {
+        id: 4,
+        imageUrl: "/mock/product-camera.jpg",
+        isThumbnail: true,
+      },
+    ],
+    createdAt: addHours(-36),
+  },
+  {
+    id: 5,
+    sellerId: 105,
+    sellerNickname: "camping_life",
+    title: "캠핑 테이블 세트",
+    description: "접이식 캠핑 테이블과 의자 세트입니다.",
+    category: "생활용품",
+    startPrice: null,
+    buyNowPrice: 90000,
+    currentPrice: 90000,
+    status: "SOLD",
+    likeCount: 17,
+    auctionStartTime: null,
+    auctionEndTime: null,
+    auctionStatus: null,
+    images: [
+      {
+        id: 5,
+        imageUrl: "/mock/product-camping.jpg",
+        isThumbnail: true,
+      },
+    ],
+    createdAt: addHours(-96),
+  },
+];

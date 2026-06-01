@@ -2,17 +2,26 @@ import Link from "next/link";
 import SectionTitle from "@/components/common/SectionTitle";
 import ProductListCard from "@/components/product/ProductListCard";
 import { getAuctionsByStatus } from "@/services/auction.service";
+import type { Auction } from "@/types/auction";
+
+async function getClosingSoonAuctions(): Promise<Auction[]> {
+  try {
+    const auctions = await getAuctionsByStatus("RUNNING");
+
+    return auctions
+      .sort(
+        (a, b) =>
+          new Date(a.endTime).getTime() - new Date(b.endTime).getTime()
+      )
+      .slice(0, 3);
+  } catch (error) {
+    console.error("마감 임박 경매 조회 실패:", error);
+    return [];
+  }
+}
 
 export default async function ClosingSoonAuctionSection() {
-  const auctions = await getAuctionsByStatus("RUNNING");
-
-  const closingSoonAuctions = auctions
-    .sort(
-      (a, b) =>
-        new Date(a.endTime).getTime() - new Date(b.endTime).getTime()
-    )
-    // slice : 마감 임박 경매 중 상위 3개만 표시
-    .slice(0, 3);
+  const closingSoonAuctions = await getClosingSoonAuctions();
 
   return (
     <section className="container-default py-10">

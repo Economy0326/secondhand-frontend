@@ -49,11 +49,17 @@ export default function ProductListCard({
         <img
           src={imageUrl}
           alt={title}
-          // aspect-[4/3]: 가로 세로 비율을 4:3으로 유지
           className="aspect-[4/3] w-full rounded-[20px] object-cover"
         />
       ) : (
-        <div className="aspect-[4/3] rounded-[20px] bg-[linear-gradient(135deg,#2b3348,#171b26)]" />
+        <div className="flex aspect-[4/3] w-full items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,#2b3348,#171b26)]">
+          <div className="text-center">
+            <p className="text-sm font-semibold text-white/60">이미지 준비 중</p>
+            <p className="mt-1 text-xs text-white/35">
+              {isAuction ? "Auction Item" : "Secondhand Item"}
+            </p>
+          </div>
+        </div>
       )}
 
       <div className="mt-5">
