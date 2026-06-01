@@ -338,6 +338,14 @@ FINISHED / FAILED / CANCELLED
 
 ---
 
+## Current Status
+
+- 경매장 UI와 상태별 정책 로직 구현
+- Swagger 수정 전 mock 데이터 기반으로 화면 검증
+- API 응답 확정 후 fetch 연동 예정
+
+---
+
 ## 프로젝트 구조
 
 ```text
