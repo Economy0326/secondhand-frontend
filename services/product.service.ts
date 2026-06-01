@@ -1,26 +1,62 @@
 import { apiFetch } from "@/lib/api";
+import { buildSearchQuery } from "@/lib/product-query";
+import { mockProducts } from "@/mocks/products.mock";
 import {
   CreateProductParams,
   Product,
   ProductStatus,
   UpdateProductParams,
 } from "@/types/product";
-import { buildSearchQuery } from "@/lib/product-query";
 
-export function getProducts() {
+const USE_MOCK_PRODUCTS =
+  process.env.NEXT_PUBLIC_USE_MOCK_PRODUCTS === "true";
+
+export function getProducts(): Promise<Product[]> {
+  if (USE_MOCK_PRODUCTS) {
+    return Promise.resolve(mockProducts);
+  }
+
   return apiFetch<Product[]>("/api/products");
 }
 
-export function getProductsByStatus(status: ProductStatus) {
+export function getProductsByStatus(status: ProductStatus): Promise<Product[]> {
+  if (USE_MOCK_PRODUCTS) {
+    return Promise.resolve(
+      mockProducts.filter((product) => product.status === status)
+    );
+  }
+
   return apiFetch<Product[]>(`/api/products/status/${status}`);
 }
 
-// 검색 + 상태 + 카테고리 통합 
 export function searchProducts(params: {
   keyword?: string;
   status?: ProductStatus;
   category?: string;
-}) {
+}): Promise<Product[]> {
+  if (USE_MOCK_PRODUCTS) {
+    const keyword = params.keyword?.trim().toLowerCase();
+
+    return Promise.resolve(
+      mockProducts.filter((product) => {
+        const matchesKeyword = keyword
+          ? product.title.toLowerCase().includes(keyword) ||
+            product.description.toLowerCase().includes(keyword)
+          : true;
+
+        const matchesStatus = params.status
+          ? product.status === params.status
+          : true;
+
+        const matchesCategory = params.category
+          ? product.category === params.category
+          : true;
+
+        return matchesKeyword && matchesStatus && matchesCategory;
+      })
+    );
+  }
+
   const queryString = buildSearchQuery(params);
 
   return apiFetch<Product[]>(
