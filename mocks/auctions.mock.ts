@@ -22,6 +22,7 @@ export const mockAuctions: Auction[] = [
     winnerId: null,
     winnerNickname: null,
     createdAt: addHours(-36),
+    imageUrl: "/mock/product-camera.jpg",
   },
   {
     id: 2,
@@ -39,6 +40,7 @@ export const mockAuctions: Auction[] = [
     winnerId: null,
     winnerNickname: null,
     createdAt: addHours(-24),
+    imageUrl: "/mock/product-headphone.jpg",
   },
   {
     id: 3,
@@ -56,6 +58,7 @@ export const mockAuctions: Auction[] = [
     winnerId: 501,
     winnerNickname: "winning_user",
     createdAt: addHours(-72),
+    imageUrl: "/mock/product-shoes.jpg",
   },
   {
     id: 4,
@@ -73,6 +76,7 @@ export const mockAuctions: Auction[] = [
     winnerId: null,
     winnerNickname: null,
     createdAt: addHours(-36),
+    imageUrl: "/mock/product-camping.jpg",
   },
   {
     id: 5,
@@ -90,5 +94,6 @@ export const mockAuctions: Auction[] = [
     winnerId: null,
     winnerNickname: null,
     createdAt: addHours(-20),
+    imageUrl: "/mock/product-keyboard.jpg",
   },
 ];

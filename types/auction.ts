@@ -25,4 +25,6 @@ export interface Auction {
   winnerNickname: string | null;
 
   createdAt: string;
+
+  imageUrl?: string;
 }

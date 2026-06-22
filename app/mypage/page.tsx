@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import ProductListCard from "@/components/product/ProductListCard";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { clearAuth, getStoredAccessToken, saveAuth } from "@/lib/storage";
 import { formatPrice } from "@/lib/format";
@@ -67,13 +67,11 @@ export default function MyPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  async function loadMyInfo() {
+  const loadMyInfo = useCallback(async () => {
     try {
       const token = getStoredAccessToken();
 
       if (!token) {
-        // router.replace: 현재 페이지를 로그인 페이지로 대체하여 이동.
-        // replace를 사용하면 사용자가 뒤로 가기 버튼을 눌렀을 때 로그인 페이지로 돌아가지 않음
         router.replace("/login");
         return;
       }
@@ -93,11 +91,11 @@ export default function MyPage() {
     } finally {
       setIsCheckingAuth(false);
     }
-  }
+  }, [router]);
 
   useEffect(() => {
     loadMyInfo();
-  }, [router]);
+  }, [loadMyInfo]);
 
   async function handleUpdateSubmit(e: React.FormEvent<HTMLFormElement>) {
     // preventDefault: 폼이 제출될 때 페이지가 새로고침되는 기본 동작을 막음

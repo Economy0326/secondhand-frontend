@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import StatusBadge from "../common/StatusBadge";
 
@@ -58,9 +59,17 @@ export default function HeroSection() {
                 <span className="text-sm text-white/50">남은 시간 02:14:39</span>
               </div>
 
-              {/* 실제 이미지 대신 임시 영역 */}
+              {/* 실제 이미지 대신 목 데이터 */}
               {/* aspect-[4/3]: 가로 세로 비율 4:3 유지 */}
-              <div className="aspect-[4/3] rounded-[22px] bg-[linear-gradient(135deg,#2b3348,#171b26)]" />
+              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-slate-800">
+                <Image
+                  src="/mock/hero-watch.jpg"
+                  alt="프리미엄 시계 경매 이미지"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
 
               <div className="mt-6">
                 <h3 className="text-2xl font-semibold text-white">

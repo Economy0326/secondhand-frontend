@@ -51,7 +51,8 @@ export default async function ClosingSoonAuctionSection() {
               key={auction.id}
               id={auction.productId}
               title={auction.productTitle}
-              description={`${auction.sellerNickname} 판매 상품`}
+              description={`${auction.sellerNickname}님의 경매 상품`}
+              imageUrl={auction.imageUrl}
               isAuction
               currentPrice={auction.currentPrice}
               startPrice={auction.startPrice}

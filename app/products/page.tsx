@@ -157,7 +157,11 @@ export default async function ProductsPage({ searchParams }: Props) {
       {(keyword || category || productStatus) && (
         <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/60">
           적용된 조건:
-          {keyword && <span className="ml-2 text-white">검색어 "{keyword}"</span>}
+          {keyword && (
+            <span className="ml-2 text-white">
+              검색어 &quot;{keyword}&quot;
+            </span>
+          )}
           {productStatus && <span className="ml-2 text-white">상태 {productStatus}</span>}
           {category && <span className="ml-2 text-white">카테고리 {category}</span>}
         </div>

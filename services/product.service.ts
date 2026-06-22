@@ -64,7 +64,17 @@ export function searchProducts(params: {
   );
 }
 
-export function getProductDetail(productId: number) {
+export function getProductDetail(productId: number): Promise<Product> {
+  if (USE_MOCK_PRODUCTS) {
+    const product = mockProducts.find((item) => item.id === productId);
+
+    if (!product) {
+      return Promise.reject(new Error("mock product not found"));
+    }
+
+    return Promise.resolve(product);
+  }
+
   return apiFetch<Product>(`/api/products/${productId}`);
 }
 

@@ -186,7 +186,9 @@ export default async function AuctionsPage({ searchParams }: Props) {
         <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/60">
           적용된 조건:
           {keyword && (
-            <span className="ml-2 text-white">검색어 "{keyword}"</span>
+            <span className="ml-2 text-white">
+              검색어 &quot;{keyword}&quot;
+            </span>
           )}
           {auctionStatus && (
             <span className="ml-2 text-white">상태 {auctionStatus}</span>
@@ -208,11 +210,12 @@ export default async function AuctionsPage({ searchParams }: Props) {
               key={auction.id}
               id={auction.productId}
               title={auction.productTitle}
-              description={`${auction.sellerNickname} 판매 상품`}
+              description={`${auction.sellerNickname}님의 경매 상품`}
+              imageUrl={auction.imageUrl}
               isAuction
               currentPrice={auction.currentPrice}
-              buyNowPrice={auction.buyNowPrice}
               startPrice={auction.startPrice}
+              buyNowPrice={auction.buyNowPrice}
               likes={auction.likeCount}
               status={auction.status}
               auctionStartTime={auction.startTime}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { answerQna, createQna, getProductQnas } from "@/services/qna.service";
 import { getStoredUser } from "@/lib/storage";
 import { Qna } from "@/types/qna";
@@ -30,7 +30,7 @@ export default function QnaSection({ productId, sellerId }: Props) {
 
   const canAnswer = user?.userId === sellerId;
 
-  async function loadQnas() {
+  const loadQnas = useCallback(async () => {
     try {
       setIsLoading(true);
       setErrorMessage("");
@@ -44,12 +44,12 @@ export default function QnaSection({ productId, sellerId }: Props) {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [productId]);
 
   useEffect(() => {
     setUser(getStoredUser());
     loadQnas();
-  }, [productId]);
+  }, [loadQnas]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     // preventDefault: 폼이 제출될 때 페이지가 새로고침되는 기본 동작을 막음
