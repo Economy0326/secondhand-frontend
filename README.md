@@ -609,18 +609,6 @@ secondhand-frontend
 └─ vitest.config.ts
 ```
 
-```text
-docs
-└─ screens
-   ├─ home.png
-   ├─ products.png
-   ├─ auctions.png
-   ├─ product-detail.png
-   ├─ auction-detail.png
-   ├─ sell-product.png
-   └─ sell-auction.png
-```
-
 ---
 
 ## 🔧 환경 변수
