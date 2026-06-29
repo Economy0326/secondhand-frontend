@@ -1,8 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-if (!BASE_URL) {
-  throw new Error("NEXT_PUBLIC_API_BASE_URL 환경변수가 설정되지 않았습니다.");
-}
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
 // type ApiOptions: apiFetch 함수에 전달되는 옵션 객체의 타입 정의
 type ApiOptions = RequestInit & {
@@ -10,6 +6,10 @@ type ApiOptions = RequestInit & {
 };
 
 export async function apiFetch<T>(path: string, options: ApiOptions = {}) {
+  if (!BASE_URL) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL 환경변수가 설정되지 않았습니다.");
+  }
+
   // ...rest: options 객체에서 auth와 headers를 제외한 나머지 속성들을 rest 객체에 담음
   // auth나 headers를 제외하고는 바로 fetch 함수에 전달할 수 있도록 rest 객체로 분리
   const { auth = false, headers, ...rest } = options;
@@ -20,7 +20,9 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}) {
   const response = await fetch(`${BASE_URL}${path}`, {
     ...rest,
     headers: {
-      ...(rest.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+      ...(rest.body instanceof FormData
+        ? {}
+        : { "Content-Type": "application/json" }),
       ...(auth && token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
@@ -36,6 +38,7 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}) {
       sessionStorage.removeItem("user");
       window.location.href = "/login";
     }
+
     throw new Error("인증이 만료되었습니다.");
   }
 
