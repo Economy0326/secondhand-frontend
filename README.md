@@ -513,8 +513,36 @@ FINISHED / FAILED / CANCELLED
 
 ## 🧪 Test
 
-경매 상품은 상태, 로그인 여부, 판매자 여부, 입찰 금액에 따라 입찰 가능 여부가 달라지고,  
-검색 / 필터 조건은 API 요청 query string으로 변환되어야 하기 때문에 관련 로직을 별도 유틸 함수로 분리해 테스트했습니다.
+경매 상품은 상태, 로그인 여부, 판매자 여부, 입찰 금액에 따라 입찰 가능 여부가 달라지고, 검색 / 필터 조건은 API 요청 query string으로 변환되어야 합니다.
+
+그래서 화면 조건을 결정하는 정책 로직과 공통 유틸 함수를 분리하고, 해당 로직을 Vitest로 테스트했습니다.
+
+현재 테스트는 컴포넌트 렌더링이나 실제 사용자 클릭 흐름보다, 화면 분기와 API 요청 조건을 결정하는 순수 함수 중심으로 작성했습니다.
+
+### 테스트 대상
+
+- 입찰 금액 검증 로직
+  - 0원 이하 금액 입력 제한
+  - 현재 입찰가 이하 금액 제한
+  - 즉시 구매가 초과 금액 제한
+  - 정상 입찰 금액 검증
+
+- 입찰 가능 여부 판단 로직
+  - 비로그인 사용자 입찰 제한
+  - 판매자 본인 입찰 제한
+  - `RUNNING` 상태에서만 입찰 가능
+  - `READY` / `FINISHED` 상태 입찰 제한
+
+- 경매 상태별 UI 문구 처리
+  - 남은 시간 표시
+  - 상태별 안내 문구
+  - 상태별 가격 라벨
+
+- 공통 유틸 로직
+  - 가격 포맷팅
+  - 검색 / 필터 query string 생성
+
+이후 찜, 입찰, 상품 이미지 수정처럼 사용자 상호작용이 중요한 기능은 Testing Library 기반의 UI 행동 테스트로 확장할 예정입니다.
 
 ### 테스트 대상
 
@@ -660,23 +688,15 @@ NEXT_PUBLIC_USE_MOCK_PRODUCTS=true
 NEXT_PUBLIC_USE_MOCK_AUCTIONS=true
 ```
 
-### Mock 데이터로 프론트 화면 확인
+| 변수 | 설명 |
+| --- | --- |
+| `NEXT_PUBLIC_API_BASE_URL` | 백엔드 API 서버 주소 |
+| `NEXT_PUBLIC_USE_MOCK_PRODUCTS` | 상품 목록 / 상품 상세 화면에서 mock 데이터 사용 여부 |
+| `NEXT_PUBLIC_USE_MOCK_AUCTIONS` | 경매장 / 경매 상세 화면에서 mock 데이터 사용 여부 |
 
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
-NEXT_PUBLIC_USE_MOCK_PRODUCTS=true
-NEXT_PUBLIC_USE_MOCK_AUCTIONS=true
-```
+mock 데이터로 화면을 확인할 때는 `NEXT_PUBLIC_USE_MOCK_PRODUCTS`, `NEXT_PUBLIC_USE_MOCK_AUCTIONS`를 `true`로 설정합니다.
 
-### 실제 백엔드 API 연동
-
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
-NEXT_PUBLIC_USE_MOCK_PRODUCTS=false
-NEXT_PUBLIC_USE_MOCK_AUCTIONS=false
-```
-
-`NEXT_PUBLIC_API_BASE_URL`은 실제 백엔드 API 서버 주소로 변경해서 사용합니다.
+실제 백엔드 API와 연동할 때는 두 값을 `false`로 변경합니다.
 
 ---
 
