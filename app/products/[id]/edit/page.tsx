@@ -1,23 +1,42 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { PRODUCT_CATEGORIES } from "@/constants/categories";
+import {
+  canEditProductImages,
+  validateProductImagesAfterDelete,
+} from "@/lib/product-image-policy";
 import { getStoredAccessToken, getStoredUser } from "@/lib/storage";
 import { getAuctionByProductId } from "@/services/auction.service";
 import { getProductDetail, updateProduct } from "@/services/product.service";
-import { Auction } from "@/types/auction";
-import { Product } from "@/types/product";
+import type { Auction } from "@/types/auction";
+import type {
+  Product,
+  ProductEditImageState,
+  UpdateProductParams,
+} from "@/types/product";
 
 type StoredUser = {
   userId: number;
 } | null;
 
+const MAX_IMAGE_COUNT = 10;
+
+function toDateTimeLocalValue(value: string) {
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60 * 1000);
+
+  return localDate.toISOString().slice(0, 16);
+}
+
 export default function ProductEditPage() {
   const router = useRouter();
   const params = useParams();
 
-  const productId = Number(params.id);
+  const rawProductId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const productId = Number(rawProductId);
 
   const [product, setProduct] = useState<Product | null>(null);
   const [auction, setAuction] = useState<Auction | null>(null);
@@ -25,22 +44,30 @@ export default function ProductEditPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-
   const [startPrice, setStartPrice] = useState("");
   const [buyNowPrice, setBuyNowPrice] = useState("");
-
   const [auctionStartTime, setAuctionStartTime] = useState("");
   const [auctionEndTime, setAuctionEndTime] = useState("");
 
-  const [images, setImages] = useState<File[]>([]);
+  const [imageState, setImageState] = useState<ProductEditImageState>({
+    existingImages: [],
+    deleteImageIds: [],
+    newImages: [],
+    thumbnailImageId: null,
+  });
+
+  const [originalThumbnailImageId, setOriginalThumbnailImageId] = useState<
+    number | null
+  >(null);
 
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const isAuction = product?.status === "AUCTION";
+  const isSold = product?.status === "SOLD";
 
-  const auctionStatus = auction?.status;
+  const auctionStatus = auction?.status ?? product?.auctionStatus ?? null;
 
   const isAuctionReady = isAuction && auctionStatus === "READY";
   const isAuctionRunning = isAuction && auctionStatus === "RUNNING";
@@ -50,17 +77,38 @@ export default function ProductEditPage() {
       auctionStatus === "FAILED" ||
       auctionStatus === "CANCELLED");
 
-  // 일반 상품: title, description, category, buyNowPrice, images 수정 가능
-  // 경매 READY: title, description, category, startPrice, buyNowPrice, auctionStartTime, auctionEndTime, images 수정 가능
-  // 경매 RUNNING:title, description, auctionEndTime만 수정 가능,auctionEndTime은 기존 종료 시간보다 뒤로만 가능
-  // 경매 FINISHED / FAILED / CANCELLED:수정 불가
-  const canEditBasicFields = !isAuction || isAuctionReady || isAuctionRunning;
-  const canEditCategory = !isAuction || isAuctionReady;
-  const canEditImages = !isAuction || isAuctionReady;
-  const canEditStartPrice = isAuctionReady;
-  const canEditBuyNowPrice = !isAuction || isAuctionReady;
-  const canEditAuctionStartTime = isAuctionReady;
-  const canEditAuctionEndTime = isAuctionReady || isAuctionRunning;
+  const canEditBasicFields =
+    !!product && !isSold && (!isAuction || isAuctionReady || isAuctionRunning);
+
+  const canEditCategory = !!product && !isSold && (!isAuction || isAuctionReady);
+
+  const canEditImages =
+    !!product &&
+    canEditProductImages({
+      productStatus: product.status,
+      auctionStatus,
+    });
+
+  const canEditStartPrice = !!product && isAuctionReady;
+  const canEditBuyNowPrice = !!product && !isSold && (!isAuction || isAuctionReady);
+  const canEditAuctionStartTime = !!product && isAuctionReady;
+  const canEditAuctionEndTime = !!product && (isAuctionReady || isAuctionRunning);
+
+  const remainingExistingImages = useMemo(
+    () =>
+      imageState.existingImages.filter(
+        (image) => !imageState.deleteImageIds.includes(image.id),
+      ),
+    [imageState.deleteImageIds, imageState.existingImages],
+  );
+
+  const totalImageCount =
+    remainingExistingImages.length + imageState.newImages.length;
+
+  const hasImageChanges =
+    imageState.deleteImageIds.length > 0 ||
+    imageState.newImages.length > 0 ||
+    imageState.thumbnailImageId !== originalThumbnailImageId;
 
   useEffect(() => {
     async function loadProduct() {
@@ -86,8 +134,22 @@ export default function ProductEditPage() {
         setCategory(result.category);
         setBuyNowPrice(String(result.buyNowPrice));
 
+        const thumbnailId =
+          result.images.find((image) => image.isThumbnail)?.id ??
+          result.images[0]?.id ??
+          null;
+
+        setOriginalThumbnailImageId(thumbnailId);
+        setImageState({
+          existingImages: result.images,
+          deleteImageIds: [],
+          newImages: [],
+          thumbnailImageId: thumbnailId,
+        });
+
         try {
           const auctionResult = await getAuctionByProductId(productId);
+
           setAuction(auctionResult);
           setStartPrice(String(auctionResult.startPrice));
           setAuctionStartTime(toDateTimeLocalValue(auctionResult.startTime));
@@ -99,7 +161,7 @@ export default function ProductEditPage() {
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : "상품 정보를 불러오지 못했습니다."
+            : "상품 정보를 불러오지 못했습니다.",
         );
       } finally {
         setIsCheckingAuth(false);
@@ -109,28 +171,61 @@ export default function ProductEditPage() {
     loadProduct();
   }, [productId, router]);
 
-  function toDateTimeLocalValue(value: string) {
-    const date = new Date(value);
-    const offset = date.getTimezoneOffset();
-    const localDate = new Date(date.getTime() - offset * 60 * 1000);
-
-    return localDate.toISOString().slice(0, 16);
-  }
-
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    // Array.from: 유사 배열 객체나 반복 가능한 객체를 실제 배열로 변환하는 메서드
+    // Array.from: FileList 객체를 배열로 변환
+    // Filelist 객체: 사용자가 선택한 파일들의 목록을 나타내는 객체
     const files = Array.from(e.target.files ?? []);
+    const nextTotalImageCount = remainingExistingImages.length + files.length;
 
-    if (files.length > 10) {
-      setErrorMessage("이미지는 최대 10장까지 업로드할 수 있습니다.");
+    if (nextTotalImageCount > MAX_IMAGE_COUNT) {
+      setErrorMessage(`이미지는 최대 ${MAX_IMAGE_COUNT}장까지 등록할 수 있습니다.`);
+      e.target.value = "";
       return;
     }
 
-    setImages(files);
+    setErrorMessage("");
+    setImageState((prev) => ({
+      ...prev,
+      newImages: files,
+    }));
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    // preventDefault: 폼이 제출될 때 페이지가 새로고침되는 기본 동작을 막음
+  function handleToggleDeleteImage(imageId: number) {
+    setImageState((prev) => {
+      const isAlreadyDeleted = prev.deleteImageIds.includes(imageId);
+      const nextDeleteImageIds = isAlreadyDeleted
+        ? prev.deleteImageIds.filter((id) => id !== imageId)
+        : [...prev.deleteImageIds, imageId];
+
+      const isSelectedThumbnailDeleted =
+        prev.thumbnailImageId !== null &&
+        nextDeleteImageIds.includes(prev.thumbnailImageId);
+
+      return {
+        ...prev,
+        deleteImageIds: nextDeleteImageIds,
+        thumbnailImageId: isSelectedThumbnailDeleted
+          ? null
+          : prev.thumbnailImageId,
+      };
+    });
+  }
+
+  function handleSelectThumbnail(imageId: number) {
+    setImageState((prev) => {
+      if (prev.deleteImageIds.includes(imageId)) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        thumbnailImageId: imageId,
+      };
+    });
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    // preventDefault: 폼 제출 시 페이지 새로고침 방지
     e.preventDefault();
 
     if (!product) return;
@@ -138,6 +233,10 @@ export default function ProductEditPage() {
     try {
       setIsPending(true);
       setErrorMessage("");
+
+      if (isSold) {
+        throw new Error("판매 완료된 상품은 수정할 수 없습니다.");
+      }
 
       if (isAuctionClosed) {
         throw new Error("종료, 유찰, 취소된 경매 상품은 수정할 수 없습니다.");
@@ -155,16 +254,23 @@ export default function ProductEditPage() {
         throw new Error("카테고리를 선택해주세요.");
       }
 
-      const payload: {
-        title?: string;
-        description?: string;
-        category?: string;
-        startPrice?: number;
-        buyNowPrice?: number;
-        auctionStartTime?: string;
-        auctionEndTime?: string;
-        images?: File[];
-      } = {
+      if (canEditImages && hasImageChanges) {
+        const isValidImageCount = validateProductImagesAfterDelete({
+          existingImages: imageState.existingImages,
+          deleteImageIds: imageState.deleteImageIds,
+          newImagesCount: imageState.newImages.length,
+        });
+
+        if (!isValidImageCount) {
+          throw new Error("상품 이미지는 최소 1장 이상 필요합니다.");
+        }
+
+        if (totalImageCount > MAX_IMAGE_COUNT) {
+          throw new Error(`이미지는 최대 ${MAX_IMAGE_COUNT}장까지 등록할 수 있습니다.`);
+        }
+      }
+
+      const payload: UpdateProductParams = {
         title,
         description,
       };
@@ -173,8 +279,21 @@ export default function ProductEditPage() {
         payload.category = category;
       }
 
-      if (canEditImages && images.length > 0) {
-        payload.images = images;
+      if (canEditImages && hasImageChanges) {
+        if (imageState.deleteImageIds.length > 0) {
+          payload.deleteImageIds = imageState.deleteImageIds;
+        }
+
+        if (
+          imageState.thumbnailImageId !== null &&
+          imageState.thumbnailImageId !== originalThumbnailImageId
+        ) {
+          payload.thumbnailImageId = imageState.thumbnailImageId;
+        }
+
+        if (imageState.newImages.length > 0) {
+          payload.newImages = imageState.newImages;
+        }
       }
 
       if (canEditBuyNowPrice) {
@@ -215,7 +334,9 @@ export default function ProductEditPage() {
           const nextEndTime = new Date(auctionEndTime).getTime();
 
           if (nextEndTime <= originalEndTime) {
-            throw new Error("진행 중인 경매의 종료 시간은 기존보다 뒤로만 수정할 수 있습니다.");
+            throw new Error(
+              "진행 중인 경매의 종료 시간은 기존보다 뒤로만 수정할 수 있습니다.",
+            );
           }
         }
 
@@ -234,7 +355,7 @@ export default function ProductEditPage() {
       router.refresh();
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "상품 수정에 실패했습니다."
+        error instanceof Error ? error.message : "상품 수정에 실패했습니다.",
       );
     } finally {
       setIsPending(false);
@@ -243,88 +364,75 @@ export default function ProductEditPage() {
 
   if (isCheckingAuth) {
     return (
-      <section className="container-default flex min-h-[calc(100vh-80px)] items-center justify-center">
-        <div className="luxury-panel p-8 text-center">
-          <p className="text-white/70">상품 정보를 확인하는 중입니다.</p>
-        </div>
+      <section className="mx-auto max-w-5xl px-6 py-16">
+        <p className="text-white/70">상품 정보를 확인하는 중입니다.</p>
       </section>
     );
   }
 
   if (!product) {
     return (
-      <section className="container-default py-12 md:py-16">
-        <div className="luxury-panel p-10 text-center">
-          <p className="text-white/70">상품 정보를 불러올 수 없습니다.</p>
-        </div>
+      <section className="mx-auto max-w-5xl px-6 py-16">
+        <p className="text-white/70">상품 정보를 불러올 수 없습니다.</p>
       </section>
     );
   }
 
-  if (isAuctionClosed) {
+  if (isSold || isAuctionClosed) {
     return (
-      <section className="container-default py-12 md:py-16">
-        <div className="luxury-panel p-10 text-center">
-          <p className="text-sm uppercase tracking-[0.2em] text-[var(--accent)]">
-            Edit Product
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold text-white">
-            수정할 수 없는 상품입니다
-          </h1>
-          <p className="mt-4 text-sm leading-6 text-white/60">
-            종료, 유찰, 취소된 경매 상품은 수정할 수 없습니다.
-          </p>
-
-          <button
-            type="button"
-            onClick={() => router.push(`/products/${productId}`)}
-            className="mt-8 rounded-full bg-[var(--accent)] px-8 py-3 font-semibold text-black transition hover:opacity-90"
-          >
-            상품 상세로 돌아가기
-          </button>
-        </div>
+      <section className="mx-auto max-w-5xl px-6 py-16">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--accent)]">
+          Edit Product
+        </p>
+        <h1 className="mt-3 text-3xl font-bold text-white">
+          수정할 수 없는 상품입니다
+        </h1>
+        <p className="mt-4 text-white/60">
+          판매 완료, 종료, 유찰, 취소된 상품은 수정할 수 없습니다.
+        </p>
+        <button
+          type="button"
+          onClick={() => router.push(`/products/${productId}`)}
+          className="mt-8 rounded-full bg-[var(--accent)] px-8 py-3 font-semibold text-black transition hover:opacity-90"
+        >
+          상품 상세로 돌아가기
+        </button>
       </section>
     );
   }
 
   return (
-    // margin: 바깥쪽 여백, padding: 안쪽 여백
-    <section className="container-default py-12 md:py-16">
-      <div className="mb-10">
-        <p className="mb-2 text-sm uppercase tracking-[0.2em] text-[var(--accent)]">
+    <section className="mx-auto max-w-5xl px-6 py-16">
+      <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--accent)]">
           Edit Product
         </p>
-        <h1 className="text-3xl font-semibold text-white md:text-4xl">
-          상품 수정
-        </h1>
-        <p className="mt-3 text-sm leading-6 text-white/60">
+        <h1 className="mt-3 text-3xl font-bold text-white">상품 수정</h1>
+        <p className="mt-4 text-white/60">
           상품 상태에 따라 수정 가능한 항목만 변경할 수 있습니다.
         </p>
-      </div>
 
-      <div className="luxury-panel p-6 md:p-8">
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          {isAuction && auction && (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/65">
-              <p>경매 상태: {auction.status}</p>
-              {isAuctionRunning && (
-                <p className="mt-2">
-                  진행 중인 경매는 상품명, 설명, 종료 시간만 수정할 수 있습니다.
-                </p>
-              )}
-              {isAuctionReady && (
-                <p className="mt-2">
-                  시작 전 경매는 가격, 시간, 이미지까지 수정할 수 있습니다.
-                </p>
-              )}
-            </div>
-          )}
+        {isAuction && auction && (
+          <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/65">
+            <p>경매 상태: {auction.status}</p>
+            {isAuctionRunning && (
+              <p className="mt-2">
+                진행 중인 경매는 상품명, 설명, 종료 시간만 수정할 수 있습니다.
+              </p>
+            )}
+            {isAuctionReady && (
+              <p className="mt-2">
+                시작 전 경매는 가격, 시간, 이미지까지 수정할 수 있습니다.
+              </p>
+            )}
+          </div>
+        )}
 
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div>
             <label className="mb-2 block text-sm text-white/70">상품명</label>
             <input
               type="text"
-              placeholder="상품명을 입력하세요"
               value={title}
               disabled={!canEditBasicFields}
               onChange={(e) => setTitle(e.target.value)}
@@ -347,7 +455,6 @@ export default function ProductEditPage() {
                 </option>
               ))}
             </select>
-
             {!canEditCategory && (
               <p className="mt-2 text-xs text-white/45">
                 진행 중인 경매는 카테고리를 수정할 수 없습니다.
@@ -358,7 +465,6 @@ export default function ProductEditPage() {
           <div>
             <label className="mb-2 block text-sm text-white/70">상품 설명</label>
             <textarea
-              placeholder="상품 설명을 입력하세요"
               value={description}
               disabled={!canEditBasicFields}
               onChange={(e) => setDescription(e.target.value)}
@@ -440,7 +546,8 @@ export default function ProductEditPage() {
                   />
                   {isAuctionRunning && (
                     <p className="mt-2 text-xs text-white/45">
-                      진행 중인 경매의 종료 시간은 기존보다 뒤로만 수정할 수 있습니다.
+                      진행 중인 경매의 종료 시간은 기존보다 뒤로만 수정할 수
+                      있습니다.
                     </p>
                   )}
                 </div>
@@ -461,10 +568,58 @@ export default function ProductEditPage() {
           )}
 
           {canEditImages && (
-            <div>
-              <label className="mb-2 block text-sm text-white/70">
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <label className="mb-3 block text-sm text-white/70">
                 이미지 수정
               </label>
+
+              {imageState.existingImages.length > 0 && (
+                <div className="mb-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                  {imageState.existingImages.map((image) => {
+                    const isDeleted = imageState.deleteImageIds.includes(
+                      image.id,
+                    );
+                    const isThumbnail =
+                      imageState.thumbnailImageId === image.id && !isDeleted;
+
+                    return (
+                      <div
+                        key={image.id}
+                        className={`rounded-2xl border p-3 ${
+                          isDeleted
+                            ? "border-red-400/40 bg-red-500/10 opacity-60"
+                            : "border-white/10 bg-white/5"
+                        }`}
+                      >
+                        <div
+                          className="h-32 rounded-xl bg-cover bg-center"
+                          style={{ backgroundImage: `url(${image.imageUrl})` }}
+                        />
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleDeleteImage(image.id)}
+                            className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70 transition hover:bg-white/5"
+                          >
+                            {isDeleted ? "삭제 취소" : "삭제 예정"}
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={isDeleted}
+                            onClick={() => handleSelectThumbnail(image.id)}
+                            className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70 transition hover:bg-white/5 disabled:opacity-40"
+                          >
+                            {isThumbnail ? "현재 썸네일" : "썸네일 지정"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <input
                 type="file"
                 multiple
@@ -472,9 +627,18 @@ export default function ProductEditPage() {
                 onChange={handleImageChange}
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white file:mr-4 file:rounded-full file:border-0 file:bg-[var(--accent)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black"
               />
+
+              {imageState.newImages.length > 0 && (
+                <p className="mt-3 text-xs text-white/60">
+                  새 이미지 {imageState.newImages.length}장이 추가될 예정입니다.
+                </p>
+              )}
+
               <p className="mt-2 text-xs text-white/45">
-                이미지를 선택하면 기존 이미지가 백엔드 정책에 따라 교체됩니다.
-                최대 10장까지 업로드할 수 있습니다.
+                기존 이미지는 기본적으로 유지됩니다. 삭제할 이미지는 삭제
+                예정으로 표시하고, 새 이미지는 최종 수정 요청 시 함께
+                추가합니다. 현재 이미지 수: {totalImageCount} /{" "}
+                {MAX_IMAGE_COUNT}
               </p>
             </div>
           )}
