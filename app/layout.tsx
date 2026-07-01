@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/layout/Header";
+import Providers from "./providers";
 
 // 사이트 기본 메타 정보
 // export: Next.js에서 이 metadata를 읽어서 문서 메타 정보를 자동 생성
@@ -19,12 +20,14 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        {/* 공통 헤더 */}
-        <Header />
+        <Providers>
+          {/* 공통 헤더 */}
+          <Header />
 
-        {/* 레이아웃 페이지는 import 안해도 자동 연결*/}
-        {/* 각 페이지 본문 */}
-        <main>{children}</main>
+          {/* 레이아웃 페이지는 import 안해도 자동 연결*/}
+          {/* 각 페이지 본문 */}
+          {children}
+        </Providers>
       </body>
     </html>
   );
