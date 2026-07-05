@@ -43,15 +43,15 @@ export default async function ProductDetailPage({ params }: Props) {
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-4">
           <div className="luxury-panel overflow-hidden p-4">
-            {thumbnail ? (
-              <img
-                src={thumbnail}
-                alt={product.title}
-                className="aspect-[4/3] w-full rounded-[24px] object-cover"
-              />
-            ) : (
-              <div className="aspect-[4/3] rounded-[24px] bg-[linear-gradient(135deg,#2b3348,#171b26)]" />
-            )}
+            <div className="aspect-[4/3] w-full overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#2b3348,#171b26)]">
+              {thumbnail ? (
+                <img
+                  src={thumbnail}
+                  alt={product.title}
+                  className="h-full w-full object-cover"
+                />
+              ) : null}
+            </div>
           </div>
 
           {/* 추가 이미지가 있는 경우, 첫 번째 이미지는 이미 썸네일로 사용했기 때문에 나머지 이미지들을 렌더링 */}
