@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import "./globals.css";
+
 import Header from "@/components/layout/Header";
+import WebVitals from "@/components/performance/WebVitals";
+
+import "./globals.css";
 import Providers from "./providers";
 
 // 사이트 기본 메타 정보
@@ -23,6 +26,9 @@ export default function RootLayout({
         <Providers>
           {/* 공통 헤더 */}
           <Header />
+
+          {/* WebVitals: 개발 환경에서 LCP / INP / CLS 등 성능 지표를 console로 확인 */}
+          <WebVitals />
 
           {/* 레이아웃 페이지는 import 안해도 자동 연결*/}
           {/* 각 페이지 본문 */}
