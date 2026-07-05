@@ -1,47 +1,54 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { clearAuth, getStoredUser } from "@/lib/storage";
+import { useEffect } from "react";
 
-type StoredUser = {
-  nickname: string;
-} | null;
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export default function Header() {
-  const [user, setUser] = useState<StoredUser>(null);
+  const user = useAuthStore((state) => state.user);
+  const hydrate = useAuthStore((state) => state.hydrate);
+  const logout = useAuthStore((state) => state.logout);
 
-  // useEffect 빈 배열일 경우 컴포넌트가 마운트될 때 한 번만 실행됨.
-  // getStoredUser 함수를 호출하여 로컬 스토리지에서 사용자 정보를 가져와 user 상태에 저장
+  // useEffect는 Header가 마운트될 때 auth 상태를 localStorage에서 한 번 동기화하고,
+  // 이후 auth-change 이벤트가 발생할 때마다 다시 동기화함.
   useEffect(() => {
     function syncUser() {
-      setUser(getStoredUser());
+      // getStoredUser 함수 호출은 useAuthStore의 hydrate 내부에서 처리됨.
+      // 로컬 스토리지에서 사용자 정보를 가져와 user 상태에 저장하는 역할.
+      hydrate();
     }
 
     syncUser();
 
     // 로그인/로그아웃 시 같은 탭에서 Header 상태를 바로 반영하기 위한 이벤트
-    // 헤더 상태 반영이 필요한 이유: 로그인/로그아웃 후 페이지를 새로고침하지 않아도 헤더의 로그인 상태가 즉시 업데이트되어야 사용자 경험이 향상됨
+    // 헤더 상태 반영이 필요한 이유:
+    // 로그인/로그아웃 후 페이지를 새로고침하지 않아도
+    // 헤더의 로그인 상태가 즉시 업데이트되어야 사용자 경험이 향상됨
     window.addEventListener("auth-change", syncUser);
+
+    // storage 이벤트는 다른 탭에서 localStorage가 변경되었을 때 동기화하기 위함
+    window.addEventListener("storage", syncUser);
 
     return () => {
       window.removeEventListener("auth-change", syncUser);
+      window.removeEventListener("storage", syncUser);
     };
-  }, []);
+  }, [hydrate]);
 
   function handleLogout() {
-    clearAuth();
+    logout();
     window.location.href = "/";
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/30 backdrop-blur-xl">
-      <div className="container-default flex h-20 items-center justify-between">
-        <Link href="/" className="text-xl font-semibold tracking-wide text-white">
-          SecondHand <span className="gold-text">Auction</span>
+    <header className="border-b border-white/10 bg-[#0b1020]/80 backdrop-blur">
+      <div className="container-default flex h-16 items-center justify-between">
+        <Link href="/" className="font-semibold text-white">
+          SecondHand Auction
         </Link>
 
-        <nav className="hidden items-center gap-8 text-sm text-white/80 md:flex">
+        <nav className="flex items-center gap-5 text-sm text-white/70">
           <Link href="/products" className="transition hover:text-white">
             전체 상품
           </Link>
@@ -56,13 +63,14 @@ export default function Header() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 text-sm">
           {user ? (
             <>
-              <span className="text-sm text-white/80">{user.nickname}님</span>
+              <span className="text-white/70">{user.nickname}님</span>
               <button
+                type="button"
                 onClick={handleLogout}
-                className="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5"
+                className="rounded-full border border-white/10 px-4 py-2 text-white/75 transition hover:bg-white/5 hover:text-white"
               >
                 로그아웃
               </button>
@@ -71,14 +79,13 @@ export default function Header() {
             <>
               <Link
                 href="/login"
-                className="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5"
+                className="rounded-full border border-white/10 px-4 py-2 text-white/75 transition hover:bg-white/5 hover:text-white"
               >
                 로그인
               </Link>
-
               <Link
                 href="/signup"
-                className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-black transition hover:opacity-90"
+                className="rounded-full bg-[var(--accent)] px-4 py-2 font-semibold text-black transition hover:opacity-90"
               >
                 회원가입
               </Link>

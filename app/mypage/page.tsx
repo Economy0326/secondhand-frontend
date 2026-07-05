@@ -22,13 +22,10 @@ import type { Like } from "@/types/like";
 import type { Bid } from "@/types/bid";
 import type { Qna } from "@/types/qna";
 import type { Product } from "@/types/product";
-
-type MyPageTab =
-  | "PROFILE"
-  | "MY_PRODUCTS"
-  | "MY_BIDS"
-  | "MY_LIKES"
-  | "MY_QNA";
+import {
+  type MyPageTab,
+  useMyPageUiStore,
+} from "@/stores/useMyPageUiStore";
 
 function getThumbnailUrl(
   images?: { imageUrl: string; isThumbnail: boolean }[],
@@ -50,7 +47,10 @@ export default function MyPage() {
   const [hasToken, setHasToken] = useState<boolean | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState<MyPageTab>("PROFILE");
+  
+  // activeTab은 서버 데이터가 아니라 클라이언트 UI 상태이므로 Zustand에서 관리
+  const activeTab = useMyPageUiStore((state) => state.activeTab);
+  const setActiveTab = useMyPageUiStore((state) => state.setActiveTab);
 
   const [nickname, setNickname] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
