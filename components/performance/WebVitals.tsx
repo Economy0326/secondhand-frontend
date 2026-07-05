@@ -10,20 +10,13 @@ type WebVitalsMetric = {
   rating?: "good" | "needs-improvement" | "poor";
 };
 
-const trackedMetricNames = new Set([
-  "TTFB",
-  "FCP",
-  "LCP",
-  "FID",
-  "INP",
-  "CLS",
-]);
+const coreWebVitals = new Set(["LCP", "INP", "CLS"]);
 
 function reportWebVitals(metric: WebVitalsMetric) {
-  if (!trackedMetricNames.has(metric.name)) return;
+  if (!coreWebVitals.has(metric.name)) return;
 
   if (process.env.NODE_ENV === "development") {
-    console.log("[WebVitals]", {
+    console.log("[CoreWebVitals]", {
       name: metric.name,
       value: metric.value,
       delta: metric.delta,
